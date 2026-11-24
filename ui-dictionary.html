@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게임 UI 바이브 코딩 사전 | Game UI Dictionary</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans KR & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome 아이콘 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f8fafc;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        /* 데미지 플로터 애니메이션 */
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            50% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-40px) scale(0.9); }
+        }
+        .animate-float-up {
+            animation: floatUp 0.8s ease-out forwards;
+        }
+        /* 쿨다운 회전 효과 */
+        .cooldown-overlay {
+            transition: height 0.1s linear;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 상단 헤더 -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-gamepad text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                        게임 UI 바이브 코딩 사전
+                    </h1>
+                    <p class="text-xs text-slate-400">AI에게 정확한 게임 용어로 프롬프트를 작성해보세요!</p>
+                </div>
+            </div>
+
+            <!-- 검색창 -->
+            <div class="relative w-full sm:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="searchInput" placeholder="UI 이름, 영어, 기능 검색..."
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+            </div>
+        </div>
+
+        <!-- 카테고리 필터 탭 -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-3 overflow-x-auto">
+            <div class="flex space-x-2" id="categoryTabs">
+                <button data-category="all" class="category-btn active px-4 py-1.5 rounded-lg text-sm font-bold bg-indigo-600 text-white transition whitespace-nowrap">
+                    전체 보기
+                </button>
+                <button data-category="status" class="category-btn px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">
+                    ❤️ 상태 및 게이지
+                </button>
+                <button data-category="combat" class="category-btn px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">
+                    ⚔️ 전투 및 액션
+                </button>
+                <button data-category="navigation" class="category-btn px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">
+                    🧭 탐색 및 알림
+                </button>
+                <button data-category="system" class="category-btn px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">
+                    🎒 시스템 및 메뉴
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- 안내 배너 -->
+        <div class="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/30 rounded-2xl p-4 sm:p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-3">
+                <span class="text-2xl">💡</span>
+                <div>
+                    <h2 class="font-bold text-indigo-300 text-sm sm:text-base">바이브 코딩(Vibe Coding) 꿀팁!</h2>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-1">
+                        "왼쪽 위에 빨간 줄 만들어줘" 대신 <span class="text-amber-300 font-bold">"좌측 상단에 HP Bar(체력 게이지)를 추가해줘"</span>라고 말하면 AI가 훨씬 멋지고 정확하게 만들어줍니다. 각 카드의 <b>[직접 눌러보기]</b>로 동작을 확인하고 <b>[프롬프트 복사]</b>를 눌러 활용해보세요!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- UI 카드 그리드 -->
+        <div id="uiGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- JavaScript로 카드가 동적 생성됩니다 -->
+        </div>
+
+        <!-- 검색 결과 없음 표시 -->
+        <div id="emptyState" class="hidden text-center py-20">
+            <div class="text-5xl mb-4">🔍</div>
+            <h3 class="text-xl font-bold text-slate-300">검색 결과가 없습니다</h3>
+            <p class="text-slate-400 text-sm mt-2">다른 키워드나 영문 명칭으로 검색해보세요.</p>
+        </div>
+
+    </main>
+
+    <!-- 하단 푸터 -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-6 text-center text-slate-500 text-xs">
+        <p>학생들의 창의적인 게임 개발과 바이브 코딩을 응원합니다! 🚀</p>
+    </footer>
+
+    <!-- 복사 완료 토스트 메시지 -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 font-medium text-sm">
+        <i class="fa-solid fa-check-circle"></i>
+        <span>프롬프트가 클립보드에 복사되었습니다!</span>
+    </div>
+
+    <script>
+        // 게임 UI 데이터 정의
+        const gameUIData = [
+            {
+                id: 'hud',
+                category: 'system',
+                koName: '헤드업 디스플레이 (허드)',
+                enName: 'HUD (Head-Up Display)',
+                tags: ['전체화면', '상태표시', '기본UI'],
+                description: '플레이어가 게임을 하는 동안 화면에 항상 떠 있는 체력, 점수, 미니맵 등의 모든 정보창을 통틀어 부르는 말입니다.',
+                prompt: '게임 화면의 시야를 가리지 않도록 화면 가장자리에 깔끔한 스타일의 HUD(헤드업 디스플레이)를 배치해줘. 좌측 상단엔 체력바, 우측 상단엔 점수와 미니맵을 넣어줘.',
+                renderPreview: () => `
+                    <div class="relative w-full h-36 bg-slate-950 rounded-xl border border-slate-700 p-3 flex flex-col justify-between overflow-hidden select-none">
+                        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:12px_12px]"></div>
+                        <!-- 상단 HUD -->
+                        <div class="flex justify-between items-start z-10">
+                            <div class="bg-slate-800/80 px-2 py-1 rounded border border-slate-600 text-[10px]">
+                                <div class="text-red-400 font-bold">HP 80/100</div>
+                                <div class="w-16 h-1.5 bg-slate-700 rounded-full mt-0.5"><div class="w-4/5 h-full bg-red-500 rounded-full"></div></div>
+                            </div>
+                            <div class="bg-slate-800/80 px-2 py-1 rounded border border-slate-600 text-[10px] text-amber-400 font-mono">
+                                SCORE: 12,450
+                            </div>
+                        </div>
+                        <div class="text-center text-xs text-slate-500 z-10">🎮 실제 게임 플레이 화면</div>
+                        <!-- 하단 HUD -->
+                        <div class="flex justify-center gap-1.5 z-10">
+                            <div class="w-7 h-7 bg-slate-800 border border-slate-600 rounded flex items-center justify-center text-xs">🗡️</div>
+                            <div class="w-7 h-7 bg-slate-800 border border-slate-600 rounded flex items-center justify-center text-xs">🛡️</div>
+                            <div class="w-7 h-7 bg-slate-800 border border-slate-600 rounded flex items-center justify-center text-xs">🧪</div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'hp-bar',
+                category: 'status',
+                koName: '체력 게이지 (HP 바)',
+                enName: 'HP Bar / Health Gauge',
+                tags: ['생명력', '게이지', '상태바'],
+                description: '캐릭터나 보스의 남은 생명력을 막대(Bar) 형태로 보여주는 UI입니다. 줄어들 때 부드럽게 깎이는 효과를 주면 더 멋집니다.',
+                prompt: '캐릭터의 남은 생명력을 보여주는 HP Bar(체력 게이지)를 만들어줘. 데미지를 입으면 빨간색 게이지가 부드럽게 줄어들고, 숫자로도 현재 체력이 표시되게 해줘.',
+                renderPreview: () => `
+                    <div class="w-full h-36 bg-slate-950 rounded-xl border border-slate-700 p-4 flex flex-col justify-center items-center gap-3">
+                        <div class="w-full max-w-[220px]">
+                            <div class="flex justify-between text-xs font-bold mb-1">
+                                <span class="text-rose-400"><i class="fa-solid fa-heart mr-1"></i>HP</span>
+                                <span id="hp-text" class="font-mono text-slate-300">100 / 100</span>
+                            </div>
+                            <div class="w-full h-4 bg-slate-800 rounded-full p-0.5 border border-slate-700 overflow-hidden">
+                                <div id="hp-fill" class="h-full bg-gradient-to-r from-rose-600 to-red-400 rounded-full transition-all duration-300" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="updateHP(-25)" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition active:scale-95">-25 데미지</button>
+                            <button onclick="updateHP(25)" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition active:scale-95">+25 회복</button>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'cooldown-slot',
+                category: 'combat',
+                koName: '스킬 슬롯 & 쿨타임',
+                enName: 'Skill Slot & Cooldown',
+                tags: ['스킬창', '재사용대기시간', '단축키'],
+                description: '기술 아이콘을 담아두는 칸(Slot)과, 스킬 사용 후 다시 쓸 수 있을 때까지 남은 시간(Cooldown)을 어둡게 표시하는 UI입니다.',
+                prompt: '화면 하단에 3개의 Skill Slot(스킬 슬롯)을 만들고 단축키(Q, W, E)를 표시해줘. 스킬을 누르면 어두운 오버레이와 함께 남은 Cooldown(쿨타임) 초가 카운트다운되게 해줘.',
+                renderPreview: () => `
+                    <div class="w-full h-36 bg-slate-950 rounded-xl border border-slate-700 p-4 flex flex-col justify-center items-center gap-2">
+                        <div class="flex gap-3">
+                            ${['Q', 'W', 'E'].map((key, idx) => {
+                                const icons = ['🔥', '❄️', '⚡'];
+                                return `
+                                <button onclick="triggerSkill(${idx})" class="relative w-14 h-14 bg-slate-800 hover:bg-slate-700 border-2 border-indigo-500/50 rounded-xl flex items-center justify-center text-2xl overflow-hidden shadow-lg active:scale-95 transition">
+                                    <span>${icons[idx]}</span>
+                                    <span class="absolute top-0.5 left-1 text-[10px] font-mono font-bold text-slate-300 bg-slate-900/80 px-1 rounded">${key}</span>
+                                    <div id="cd-overlay-${idx}" class="absolute bottom-0 left-0 right-0 bg-slate-950/85 flex items-center justify-center text-sm font-mono font-bold text-amber-400" style="height: 0%"></div>
+                                </button>
+                                `;
+                            }).join('')}
+                        </div>
+                        <span class="text-[11px] text-slate-400">스킬 아이콘을 클릭해 쿨타임을 테스트해보세요!</span>
+                    </div>
+                `
+            },
+            {
+                id: 'floating-text',
+                category: 'combat',
+                koName: '데미지 플로터 (전투 텍스트)',
+                enName: 'Damage Floater / Floating Combat Text',
+                tags: ['타격감', '데미지숫자', '치명타'],
+                description: '적을 공격했을 때 머리 위로 숫자가 둥실 떠오르며 사라지는 UI입니다. 게임의 타격감을 높이는 데 필수적입니다.',
+                prompt: '적을 공격할 때마다 타격 위치에서 숫자가 위로 떠오르며 사라지는 Damage Floater(데미지 텍스트)를 추가해줘. 치명타(Critical)일 때는 노란색 큰 글씨로 강조해줘.',
+                renderPreview: () => `
+                    <div onclick="spawnDamage(event)" class="relative w-full h-36 bg-slate-950 rounded-xl border border-slate-700 flex flex-col justify-center items-center cursor-pointer overflow-hidden select-none group">
+                        <div class="text-4xl group-hover:scale-110 transition-transform">👾</div>
+                        <span class="text-xs text-slate-400 mt-2">몬스터를 클릭해서 공격해보세요!</span>
+                        <div id="floater-container" class="absolute inset-0 pointer-events-none"></div>
+                    </div>
+                `
+            },
+            {
+                id: 'crosshair',
+                category: 'combat',
+                koName: '조준점 (크로스헤어)',
+                enName: 'Crosshair / Reticle',
+                tags: ['총게임', 'FPS', '조준'],
+                description: '슈팅 게임(FPS/TPS)에서 화면 중앙에 위치해 총알이나 마법이 날아갈 위치를 알려주는 십자선 모양의 UI입니다.',
+                prompt: '슈팅 게임 화면 정중앙에 네온 초록색 Crosshair(조준점)를 만들어줘. 마우스를 움직이거나 발사할 때 조준점이 살짝 벌어졌다가 모이는 애니메이션을 넣어줘.',
+                renderPreview: () => `
+                    <div id="crosshair-box" onmousemove="moveCrosshair(event)" onclick="shootCrosshair()" class="relative w-full h-36 bg-slate-950 rounded-xl border border-slate-700 flex items-center justify-center overflow-hidden cursor-none">
+                        <span class="text-[11px] text-slate-500 pointer-events-none">마우스를 움직이고 클릭해보세요</span>
+                        <!-- 커스텀 조준점 -->
+                        <div id="custom-crosshair" class="absolute pointer-events-none flex items-center justify-center transition-transform duration-75" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+                            <div class="w-1 h-1 bg-emerald-400 rounded-full"></div>
+                            <div id="ch-top" class="absolute -top-3 w-0.5 h-2 bg-emerald-400 transition-all"></div>
+                            <div id="ch-bottom" class="absolute -bottom-3 w-0.5 h-2 bg-emerald-400 transition-all"></div>
+                            <div id="ch-left" class="absolute -left-3 w-2 h-0.5 bg-emerald-400 transition-all"></div>
+                            <div id="ch-right" class="absolute -right-3 w-2 h-0.5 bg-emerald-400 transition-all"></div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'minimap',
+                category: 'navigation',
+                koName: '미니맵 & 레이더',
+                enName: 'Minimap / Radar',
+                tags: ['지도', '위치확인', '방향'],
+                description: '전체 맵을 축소해서 플레이어의 현재 위치, 적의 위치, 목표 지점을 한눈에 보여주는 작은 지도 UI입니다.',
+                prompt: '우측 상단에 원형 Minimap(미니맵)을 만들어줘. 중앙에는 플레이어를 나타내는 흰색 화살표가 있고, 주변의 적은 빨간 점, 아이템은 노란 점으로 표시되게 해줘.',
+                renderPreview: () => `
+                    <div class="w-full h-36 bg-slate-950 rounded-xl border border-slate-700 flex items-center justify-center gap-6">
+                        <div class="relative w-28 h-28 rounded-full bg-slate-900 border-2 border-slate-600 flex items-center justify-center overflow-hidden shadow-inner">
+                            <!-- 레이더 선 -->
+                            <div class="absolute inset-0 border border-emerald-500/20 rounded-full scale-50"></div>
+                            <div class="w-full h-[1px] bg-slate-800 absolute"></div>
+                            <div class="h-full w-[1px] bg-slate-800 absolute"></div>
+                            <!-- 플레이어 (중앙) -->
+                            <div class="w-2.5 h-2.5 bg-white rotate-45 z-10 shadow-[0_0_8px_#fff]"></div>
+                            <!-- 적 & 아이템 점 -->
+                            <div class="w-2 h-2 bg-rose-500 rounded-full absolute top-5 left-7 animate-ping"></div>
+                            <div class="w-2 h-2 bg-rose-500 rounded-full absolute top-5 left-7"></div>
+                            <div class="w-2 h-2 bg-amber-400 rounded-full absolute bottom-6 right-6"></div>
+                            <span class="absolute top-1 text-[9px] font-bold text-slate-400">N</span>
+                        </div>
+                        <div class="text-xs space-y-1.5 text-slate-300">
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 bg-white inline-block rotate-45"></span> 나 (Player)</div>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 bg-rose-500 rounded-full inline-block"></span> 적 (Enemy)</div>
+                            <div class="flex items-center gap-2"><span class="w-2 h-2 bg-amber-400 rounded-full inline-block"></span> 보물 (Item)</div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'dialogue-box',
+                category: 'navigation',
+                koName: '대화창 (다이얼로그 박스)',
+                enName: 'Dialogue Box / Speech Window',
+                tags: ['스토리', 'NPC대화', '자막'],
+                description: 'RPG나 스토리 게임에서 캐릭터의 초상화, 이름, 대사가 타자 치듯 출력되는 하단 창입니다.',
+                prompt: 'RPG 스타일의 하단 Dialogue Box(대화창)를 만들어줘. 왼쪽에 캐릭터 초상화(Portrait)와 이름표가 있고, 대사가 한 글자씩 타이핑되듯 나오는 효과를 넣어줘.',
+                renderPreview: () => `
+                    <div onclick="replayDialogue()" class="w-full h-36 bg-slate-950 rounded-xl border border-slate-700 p-3 flex flex-col justify-end cursor-pointer">
+                        <div class="bg-slate-800/95 border border-indigo-500/50 rounded-xl p-2.5 flex gap-3 items-center shadow-lg">
+                            <div class="w-12 h-12 rounded-lg bg-indigo-950 border border-indigo-400/40 flex items-center justify-center text-2xl shrink-0">
+                                🧙‍♂️
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <div class="text-[11px] font-bold text-indigo-400 mb-0.5">대현자 멀린</div>
+                                <p id="dialogue-text" class="text-xs text-slate-200 leading-relaxed truncate">용사여, 바이브 코딩의 세계에 온 것을 환영하네!</p>
+                            </div>
+                            <span class="text-[10px] text-slate-400 animate-bounce self-end">▼</span>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'inventory',
+                category: 'system',
+                koName: '인벤토리 & 그리드 슬롯',
+                enName: 'Inventory / Item Grid',
+                tags: ['가방', '아이템창', '장비'],
+                description: '획득한 아이템들을 격자(Grid) 칸에 보관하고, 클릭하거나 마우스를 올렸을 때 아이템 설명(툴팁)을 보여주는 창입니다.',
+                prompt: '4x2 격자 형태의 Inventory(인벤토리) 창을 만들어줘. 각 칸에 아이템 아이콘과 수량을 표시하고, 아이템을 클릭하면 아래에 아이템 이름과 설명이 나오게 해줘.',
+                renderPreview: () => `
+                    <div class="w-full h-36 bg-slate-950 rounded-xl border border-slate-700 p-3 flex flex-col justify-center items-center gap-2">
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button onclick="selectItem('전설의 검', '공격력 +50')" class="w-10 h-10 bg-slate-800 hover:border-amber-400 border border-slate-600 rounded-lg flex items-center justify-center text-lg relative">🗡️</button>
+                            <button onclick="selectItem('체력 물약', 'HP 50 회복 (x5)')" class="w-10 h-10 bg-slate-800 hover:border-amber-400 border border-slate-600 rounded-lg flex items-center justify-center text-lg relative">🧪<span class="absolute bottom-0.5 right-1 text-[9px] font-mono text-white">5</span></button>
+                            <button onclick="selectItem('황금 열쇠', '보물상자를 연다')" class="w-10 h-10 bg-slate-800 hover:border-amber-400 border border-slate-600 rounded-lg flex items-center justify-center text-lg relative">🗝️</button>
+                            <div class="w-10 h-10 bg-slate-900/60 border border-slate-800 rounded-lg"></div>
+                        </div>
+                        <div id="item-tooltip" class="text-[11px] bg-slate-800 px-3 py-1 rounded-md text-amber-300 border border-slate-700">
+                            아이템을 클릭해 정보를 확인하세요
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'virtual-joystick',
+                category: 'system',
+                koName: '가상 조이스틱 (컨트롤 패드)',
+                enName: 'Virtual Joystick / Touch Pad',
+                tags: ['모바일조작', '이동패드', '터치'],
+                description: '스마트폰이나 태블릿에서 캐릭터를 이동시키기 위해 화면 좌측 하단에 배치하는 터치형 방향키 UI입니다.',
+                prompt: '모바일에서도 플레이할 수 있도록 화면 좌측 하단에 드래그가 가능한 Virtual Joystick(가상 조이스틱)을 추가하고, 우측 하단에는 점프와 공격 버튼을 만들어줘.',
+                renderPreview: () => `
+                    <div class="w-full h-36 bg-slate-950 rounded-xl border border-slate-700 p-4 flex items-center justify-around select-none">
+                        <!-- 조이스틱 영역 -->
+                        <div id="joy-base" class="relative w-20 h-20 rounded-full bg-slate-800/80 border-2 border-slate-600 flex items-center justify-center cursor-grab active:cursor-grabbing">
+                            <div id="joy-stick" class="w-9 h-9 rounded-full bg-indigo-500 shadow-lg shadow-indigo-500/50 transition-transform duration-75 pointer-events-none"></div>
+                        </div>
+                        <!-- 액션 버튼 -->
+                        <div class="flex gap-2 items-end">
+                            <button class="w-10 h-10 rounded-full bg-emerald-600/80 border border-emerald-400 text-xs font-bold active:scale-90 transition">B</button>
+                            <button class="w-12 h-12 rounded-full bg-rose-600/80 border border-rose-400 text-sm font-bold active:scale-90 transition mb-3">A</button>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'toast-banner',
+                category: 'navigation',
+                koName: '알림 배너 & 퀘스트 트래커',
+                enName: 'Toast Notification / Quest Banner',
+                tags: ['업적달성', '미션알림', '팝업'],
+                description: '게임을 방해하지 않으면서 "보스 출현!", "레벨 업!", "퀘스트 완료" 같은 중요한 소식을 잠깐 띄워주는 알림창입니다.',
+                prompt: '플레이어가 목표를 달성했을 때 화면 상단 중앙에서 부드럽게 내려왔다가 3초 뒤 사라지는 Toast Notification(알림 배너)을 만들어줘.',
+                renderPreview: () => `
+                    <div class="w-full h-36 bg-slate-950 rounded-xl border border-slate-700 p-4 flex flex-col justify-between items-center overflow-hidden">
+                        <div id="demo-banner" class="bg-gradient-to-r from-amber-500/20 via-amber-500/30 to-amber-500/20 border border-amber-400/60 px-4 py-1.5 rounded-full flex items-center gap-2 transition-all duration-300 transform -translate-y-12 opacity-0">
+                            <span>🏆</span>
+                            <span class="text-xs font-bold text-amber-300">업적 달성: 첫 번째 코드 완성!</span>
+                        </div>
+                        <button onclick="triggerBanner()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition active:scale-95">
+                            알림 배너 띄우기 테스트
+                        </button>
+                    </div>
+                `
+            },
+            {
+                id: 'exp-bar',
+                category: 'status',
+                koName: '경험치 바 & 레벨 표시',
+                enName: 'EXP Bar / Progress Gauge',
+                tags: ['레벨업', '진행도', '성장'],
+                description: '다음 레벨까지 얼마나 남았는지 퍼센트(%)로 보여주는 진행도 바입니다. 가득 차면 레벨이 오르는 연출과 함께 쓰입니다.',
+                prompt: '화면 최하단에 길게 뻗은 EXP Bar(경험치 게이지)를 배치해줘. 게이지가 100% 가득 차면 레벨 숫자가 올라가면서 반짝이는 효과를 넣어줘.',
+                renderPreview: () => `
+                    <div class="w-full h-36 bg-slate-950 rounded-xl border border-slate-700 p-4 flex flex-col justify-center items-center gap-3">
+                        <div class="w-full max-w-[230px]">
+                            <div class="flex justify-between items-center mb-1">
+                                <span id="lv-badge" class="bg-amber-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded">LV. 1</span>
+                                <span id="exp-text" class="text-[11px] font-mono text-amber-300">40%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                                <div id="exp-fill" class="h-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-all duration-300" style="width: 40%"></div>
+                            </div>
+                        </div>
+                        <button onclick="addExp()" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition active:scale-95">
+                            +35% 경험치 획득
+                        </button>
+                    </div>
+                `
+            },
+            {
+                id: 'game-over-modal',
+                category: 'system',
+                koName: '게임 오버 / 결과 모달창',
+                enName: 'Game Over / Result Modal',
+                tags: ['재시작', '점수판', '팝업창'],
+                description: '게임이 끝났을 때 배경을 어둡게 만들고 화면 중앙에 최종 점수, 최고 기록, 다시하기(Retry) 버튼을 띄우는 팝업창입니다.',
+                prompt: '플레이어 체력이 0이 되면 배경을 흐리게(Blur) 처리하고 화면 중앙에 최종 점수, 별점 평가, 그리고 [다시 시작] 버튼이 있는 Game Over Modal(결과 팝업창)을 띄워줘.',
+                renderPreview: () => `
+                    <div class="w-full h-36 bg-slate-950 rounded-xl border border-slate-700 p-3 flex items-center justify-center">
+                        <div class="bg-slate-900 border border-slate-600 rounded-xl p-3 w-52 text-center shadow-2xl">
+                            <div class="text-sm font-black text-rose-400 tracking-wider">GAME OVER</div>
+                            <div class="text-xs text-amber-400 my-1">⭐⭐⭐</div>
+                            <div class="text-[11px] text-slate-300 font-mono mb-2">SCORE: 8,900</div>
+                            <button onclick="showToast('다시 시작 버튼이 눌렸습니다!')" class="w-full py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold rounded-lg transition">
+                                <i class="fa-solid fa-rotate-right mr-1"></i> RETRY
+                            </button>
+                        </div>
+                    </div>
+                `
+            }
+        ];
+
+        // 상태 변수
+        let currentCategory = 'all';
+        let searchQuery = '';
+
+        // DOM 요소
+        const uiGrid = document.getElementById('uiGrid');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+
+        // 카드 렌더링 함수
+        function renderCards() {
+            const filtered = gameUIData.filter(item => {
+                const matchCategory = currentCategory === 'all' || item.category === currentCategory;
+                const q = searchQuery.toLowerCase();
+                const matchSearch = item.koName.toLowerCase().includes(q) ||
+                                    item.enName.toLowerCase().includes(q) ||
+                                    item.description.toLowerCase().includes(q) ||
+                                    item.tags.some(tag => tag.toLowerCase().includes(q));
+                return matchCategory && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                uiGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            uiGrid.innerHTML = filtered.map(item => `
+                <div class="bg-slate-800/70 border border-slate-700/80 hover:border-indigo-500/50 rounded-2xl p-5 flex flex-col justify-between shadow-lg transition-all duration-200 hover:-translate-y-1">
+                    <div>
+                        <!-- 상단 타이틀 및 영문명 -->
+                        <div class="flex justify-between items-start gap-2 mb-3">
+                            <div>
+                                <span class="inline-block text-[11px] font-mono font-bold text-indigo-400 bg-indigo-950/80 border border-indigo-500/30 px-2.5 py-0.5 rounded-md mb-1.5">
+                                    ${item.enName}
+                                </span>
+                                <h3 class="text-lg font-bold text-white">${item.koName}</h3>
+                            </div>
+                        </div>
+
+                        <!-- 인터랙티브 프리뷰 영역 -->
+                        <div class="mb-4">
+                            ${item.renderPreview()}
+                        </div>
+
+                        <!-- 설명 -->
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            ${item.description}
+                        </p>
+
+                        <!-- 해시태그 -->
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            ${item.tags.map(tag => `<span class="text-[11px] bg-slate-900 text-slate-400 px-2 py-0.5 rounded-md">#${tag}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <!-- 프롬프트 예시 박스 -->
+                    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-3">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> AI 프롬프트 예시
+                            </span>
+                            <button onclick="copyPrompt(\`${item.prompt}\`)" class="text-xs bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white px-2.5 py-1 rounded-lg border border-slate-600 hover:border-indigo-500 transition flex items-center gap-1.5 font-medium">
+                                <i class="fa-regular fa-copy"></i> 복사
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed select-all">
+                            "${item.prompt}"
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+
+            // 조이스틱 이벤트 다시 바인딩
+            initJoystick();
+        }
+
+        // 카테고리 탭 이벤트
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                categoryBtns.forEach(b => {
+                    b.classList.remove('bg-indigo-600', 'text-white', 'font-bold');
+                    b.classList.add('bg-slate-800', 'text-slate-300', 'font-medium');
+                });
+                btn.classList.remove('bg-slate-800', 'text-slate-300', 'font-medium');
+                btn.classList.add('bg-indigo-600', 'text-white', 'font-bold');
+
+                currentCategory = btn.dataset.category;
+                renderCards();
+            });
+        });
+
+        // 검색 이벤트
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderCards();
+        });
+
+        // 클립보드 복사 함수 (iFrame 호환)
+        function copyPrompt(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('프롬프트가 복사되었습니다! AI 채팅창에 붙여넣어 보세요.');
+            } catch (err) {
+                showToast('복사에 실패했습니다.');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // 토스트 알림 표시
+        let toastTimeout;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.querySelector('span').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        /* ==========================================
+           각 UI 프리뷰 인터랙션 로직
+           ========================================== */
+
+        // 1. HP Bar 조절
+        let currentHP = 100;
+        function updateHP(amount) {
+            currentHP = Math.max(0, Math.min(100, currentHP + amount));
+            const fill = document.getElementById('hp-fill');
+            const text = document.getElementById('hp-text');
+            if (fill && text) {
+                fill.style.width = currentHP + '%';
+                text.textContent = `${currentHP} / 100`;
+            }
+        }
+
+        // 2. 스킬 쿨타임
+        const cooldownActive = [false, false, false];
+        function triggerSkill(idx) {
+            if (cooldownActive[idx]) return;
+            cooldownActive[idx] = true;
+            const overlay = document.getElementById(`cd-overlay-${idx}`);
+            let timeLeft = 3.0;
+            overlay.style.height = '100%';
+            overlay.textContent = timeLeft.toFixed(1);
+
+            const interval = setInterval(() => {
+                timeLeft -= 0.1;
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    overlay.style.height = '0%';
+                    overlay.textContent = '';
+                    cooldownActive[idx] = false;
+                } else {
+                    overlay.style.height = `${(timeLeft / 3.0) * 100}%`;
+                    overlay.textContent = timeLeft.toFixed(1);
+                }
+            }, 100);
+        }
+
+        // 3. 데미지 플로터
+        function spawnDamage(e) {
+            const container = document.getElementById('floater-container');
+            if (!container) return;
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const isCrit = Math.random() > 0.65;
+            const dmg = isCrit ? Math.floor(Math.random() * 500 + 500) : Math.floor(Math.random() * 150 + 50);
+
+            const el = document.createElement('div');
+            el.className = `absolute font-mono font-black animate-float-up ${isCrit ? 'text-amber-400 text-xl' : 'text-white text-sm'}`;
+            el.style.left = `${x - 20}px`;
+            el.style.top = `${y - 10}px`;
+            el.textContent = isCrit ? `💥${dmg}!` : `-${dmg}`;
+
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+
+        // 4. 크로스헤어 이동 및 발사
+        function moveCrosshair(e) {
+            const box = document.getElementById('crosshair-box');
+            const ch = document.getElementById('custom-crosshair');
+            if (!box || !ch) return;
+            const rect = box.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            ch.style.left = `${x}px`;
+            ch.style.top = `${y}px`;
+        }
+        function shootCrosshair() {
+            const top = document.getElementById('ch-top');
+            const bottom = document.getElementById('ch-bottom');
+            const left = document.getElementById('ch-left');
+            const right = document.getElementById('ch-right');
+            if (!top) return;
+
+            top.style.top = '-20px';
+            bottom.style.bottom = '-20px';
+            left.style.left = '-20px';
+            right.style.right = '-20px';
+
+            setTimeout(() => {
+                top.style.top = '-12px';
+                bottom.style.bottom = '-12px';
+                left.style.left = '-12px';
+                right.style.right = '-12px';
+            }, 120);
+        }
+
+        // 5. 대화창 타이핑 재실행
+        let typingTimer;
+        function replayDialogue() {
+            const el = document.getElementById('dialogue-text');
+            if (!el) return;
+            const fullText = "용사여, 바이브 코딩의 세계에 온 것을 환영하네!";
+            el.textContent = "";
+            let i = 0;
+            clearInterval(typingTimer);
+            typingTimer = setInterval(() => {
+                el.textContent += fullText[i];
+                i++;
+                if (i >= fullText.length) clearInterval(typingTimer);
+            }, 40);
+        }
+
+        // 6. 인벤토리 아이템 선택
+        function selectItem(name, desc) {
+            const tooltip = document.getElementById('item-tooltip');
+            if (tooltip) {
+                tooltip.innerHTML = `<strong class="text-white">${name}</strong> : ${desc}`;
+            }
+        }
+
+        // 7. 알림 배너 테스트
+        function triggerBanner() {
+            const banner = document.getElementById('demo-banner');
+            if (!banner) return;
+            banner.classList.remove('-translate-y-12', 'opacity-0');
+            setTimeout(() => {
+                banner.classList.add('-translate-y-12', 'opacity-0');
+            }, 2200);
+        }
+
+        // 8. 경험치 바 증가
+        let currentExp = 40;
+        let currentLv = 1;
+        function addExp() {
+            currentExp += 35;
+            if (currentExp >= 100) {
+                currentExp -= 100;
+                currentLv++;
+                showToast(`🎉 LEVEL UP! 레벨 ${currentLv} 달성!`);
+            }
+            const fill = document.getElementById('exp-fill');
+            const text = document.getElementById('exp-text');
+            const badge = document.getElementById('lv-badge');
+            if (fill && text && badge) {
+                fill.style.width = currentExp + '%';
+                text.textContent = currentExp + '%';
+                badge.textContent = `LV. ${currentLv}`;
+            }
+        }
+
+        // 9. 가상 조이스틱 드래그 로직
+        function initJoystick() {
+            const base = document.getElementById('joy-base');
+            const stick = document.getElementById('joy-stick');
+            if (!base || !stick) return;
+
+            let isDragging = false;
+            const maxDist = 22;
+
+            const handleMove = (clientX, clientY) => {
+                if (!isDragging) return;
+                const rect = base.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                let dx = clientX - centerX;
+                let dy = clientY - centerY;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist > maxDist) {
+                    dx = (dx / dist) * maxDist;
+                    dy = (dy / dist) * maxDist;
+                }
+                stick.style.transform = `translate(${dx}px, ${dy}px)`;
+            };
+
+            const resetStick = () => {
+                isDragging = false;
+                stick.style.transform = `translate(0px, 0px)`;
+            };
+
+            base.addEventListener('mousedown', (e) => { isDragging = true; handleMove(e.clientX, e.clientY); });
+            window.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+            window.addEventListener('mouseup', resetStick);
+
+            base.addEventListener('touchstart', (e) => { isDragging = true; handleMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+            window.addEventListener('touchmove', (e) => { if (isDragging) handleMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+            window.addEventListener('touchend', resetStick);
+        }
+
+        // 초기 실행
+        window.onload = () => {
+            renderCards();
+        };
+
+        // 발표자료(index.html) 안에서 열렸을 때: Esc 키로 사전 닫기
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && window.parent !== window) {
+                window.parent.postMessage('ui-dict-close', '*');
+            }
+        });
+    </script>
+</body>
+</html>
