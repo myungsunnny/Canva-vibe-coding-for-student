@@ -29,6 +29,32 @@
             outline: 2px solid #a5b4fc;
             outline-offset: 2px;
         }
+        /* 게임 화면 미리보기 애니메이션 */
+        .pv-a { animation-iteration-count: infinite; animation-timing-function: ease-in-out; animation-direction: alternate; }
+        .pv-drift { animation-name: pvDrift; animation-duration: 7s; }
+        .pv-drift2 { animation-name: pvDrift2; animation-duration: 9s; }
+        .pv-bob { animation-name: pvBob; animation-duration: 1.3s; }
+        .pv-bob2 { animation-name: pvBob; animation-duration: 1.7s; }
+        .pv-march { animation-name: pvMarch; animation-duration: 3s; animation-timing-function: linear; }
+        .pv-march2 { animation-name: pvMarchY; animation-duration: 2.4s; animation-timing-function: linear; }
+        .pv-blink { animation-name: pvBlink; animation-duration: .9s; }
+        .pv-pulse { animation-name: pvPulse; animation-duration: 1s; transform-box: fill-box; transform-origin: center; }
+        .pv-flicker { animation-name: pvFlicker; animation-duration: .3s; transform-box: fill-box; transform-origin: center bottom; }
+        .pv-float { animation-name: pvFloat; animation-duration: 1.5s; animation-direction: normal; animation-timing-function: ease-out; }
+        .pv-swing { animation-name: pvSwing; animation-duration: .8s; transform-origin: 0px 42px; }
+        @keyframes pvDrift { to { transform: translateX(-36px); } }
+        @keyframes pvDrift2 { to { transform: translateX(26px); } }
+        @keyframes pvBob { to { transform: translateY(-5px); } }
+        @keyframes pvMarch { to { transform: translateX(36px); } }
+        @keyframes pvMarchY { to { transform: translateY(32px); } }
+        @keyframes pvBlink { to { opacity: .25; } }
+        @keyframes pvPulse { to { transform: scale(1.07); } }
+        @keyframes pvFlicker { to { transform: scale(.85, 1.15); } }
+        @keyframes pvFloat { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-16px); opacity: 0; } }
+        @keyframes pvSwing { from { transform: rotate(-25deg); } to { transform: rotate(5deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .pv-a { animation: none !important; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -523,20 +549,355 @@
             }
         ];
 
-        // 유형별 정적 미리보기 이모지 (분위기 표현)
-        const previewEmojis = {
-            'runner-jump': { bg: 'from-sky-900/60 to-slate-950', items: ['☁️', '🐤', '🏛️', '⭐'] },
-            'space-shooter': { bg: 'from-indigo-950 to-slate-950', items: ['☄️', '🚀', '✨', '☄️', '🪐'] },
-            'whack-a-mole': { bg: 'from-emerald-900/60 to-slate-950', items: ['🕳️', '🐹', '🕳️', '🕳️', '🌱'] },
-            'snake-arcade': { bg: 'from-lime-900/50 to-slate-950', items: ['🚂', '🚃', '🚃', '🍎'] },
-            'tower-defense': { bg: 'from-amber-900/40 to-slate-950', items: ['💨', '🛤️', '🔫', '🏫'] },
-            'sliding-puzzle': { bg: 'from-violet-900/50 to-slate-950', items: ['1️⃣', '2️⃣', '3️⃣', '⬜', '4️⃣'] },
-            'match-three': { bg: 'from-rose-900/40 to-slate-950', items: ['🥫', '🍾', '📄', '🥫', '🧴'] },
-            'quiz-challenge': { bg: 'from-blue-900/50 to-slate-950', items: ['❓', '🅰️', '🅱️', '✅'] },
-            'memory-cards': { bg: 'from-fuchsia-900/40 to-slate-950', items: ['🃏', '🐶', '🃏', '🐶', '🐱'] },
-            'clicker-tycoon': { bg: 'from-yellow-900/40 to-slate-950', items: ['🪴', '💧', '🪙', '🌸'] },
-            'text-adventure': { bg: 'from-orange-950/70 to-slate-950', items: ['📖', '🗝️', '🗺️', '🧭'] },
-            'escape-room': { bg: 'from-teal-900/50 to-slate-950', items: ['🚪', '🔒', '🔍', '🧪', '⏰'] }
+        // 유형별 게임 화면 미리보기 (직접 그린 인라인 SVG, 외부 에셋 없음)
+        const PV_MONO = "'JetBrains Mono',monospace";
+        const PV_SANS = "'Noto Sans KR',sans-serif";
+        const pvText = (x, y, t, fill, size, anchor, font, extra) =>
+            `<text x="${x}" y="${y}" fill="${fill}" font-size="${size || 9}" font-weight="700" text-anchor="${anchor || 'start'}" font-family="${font || PV_MONO}" ${extra || ''}>${t}</text>`;
+        const pvOutline = 'stroke="rgba(0,0,0,.55)" stroke-width="3" paint-order="stroke"';
+        const pvHeart = (x, y, s, fill) =>
+            `<path transform="translate(${x} ${y}) scale(${s})" d="M0 4 C-8 -1 -5 -8 0 -3 C5 -8 8 -1 0 4Z" fill="${fill}"/>`;
+        const pvStar = (cx, cy, R, r, fill, extra) => {
+            const pts = [];
+            for (let i = 0; i < 10; i++) {
+                const a = -Math.PI / 2 + i * Math.PI / 5;
+                const rad = i % 2 === 0 ? R : r;
+                pts.push((cx + rad * Math.cos(a)).toFixed(1) + ',' + (cy + rad * Math.sin(a)).toFixed(1));
+            }
+            return `<polygon points="${pts.join(' ')}" fill="${fill}" ${extra || ''}/>`;
+        };
+        const pvFrame = (label, defs, body) =>
+            `<svg viewBox="0 0 320 180" width="100%" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:12px;aspect-ratio:16/9"><defs>${defs}</defs>${body}</svg>`;
+
+        const previewScenes = {
+            // 러너 · 점프
+            'runner-jump': id => {
+                const pipe = (x, t, b) => `
+                    <rect x="${x + 4}" y="0" width="34" height="${t}" fill="url(#${id}-pipe)"/>
+                    <rect x="${x}" y="${t - 10}" width="42" height="10" rx="2" fill="url(#${id}-pipe)" stroke="#1b5e20"/>
+                    <rect x="${x + 4}" y="${b}" width="34" height="${158 - b}" fill="url(#${id}-pipe)"/>
+                    <rect x="${x}" y="${b}" width="42" height="10" rx="2" fill="url(#${id}-pipe)" stroke="#1b5e20"/>`;
+                return pvFrame('러너 게임 화면 예시',
+                    `<linearGradient id="${id}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fc3f7"/><stop offset="1" stop-color="#b3e5fc"/></linearGradient>
+                     <linearGradient id="${id}-pipe" x1="0" x2="1"><stop offset="0" stop-color="#2e7d32"/><stop offset=".5" stop-color="#7bc67e"/><stop offset="1" stop-color="#2e7d32"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-sky)"/>
+                     <circle cx="275" cy="40" r="16" fill="#fff59d"/>
+                     <g class="pv-a pv-drift" fill="#fff" opacity=".92"><ellipse cx="60" cy="44" rx="26" ry="9"/><ellipse cx="78" cy="38" rx="16" ry="9"/><ellipse cx="215" cy="70" rx="22" ry="8"/><ellipse cx="231" cy="65" rx="13" ry="7"/></g>
+                     <g class="pv-a pv-drift2" fill="#fff" opacity=".6"><ellipse cx="150" cy="26" rx="18" ry="6"/><ellipse cx="285" cy="100" rx="16" ry="6"/></g>
+                     ${pipe(105, 58, 112)}${pipe(215, 40, 96)}
+                     <rect y="158" width="320" height="22" fill="#8d6e63"/><rect y="158" width="320" height="6" fill="#7cb342"/>
+                     <g transform="translate(62 82)"><g class="pv-a pv-bob">
+                        <polygon points="-12,-2 -22,-6 -20,4" fill="#f57f17"/>
+                        <circle r="13" fill="#ffca28" stroke="#f57f17" stroke-width="1.5"/>
+                        <ellipse cx="2" cy="6" rx="8" ry="5" fill="#fff8e1"/>
+                        <ellipse cx="-4" cy="3" rx="8" ry="5" fill="#ffb300" stroke="#f57f17"/>
+                        <circle cx="6" cy="-5" r="4.2" fill="#fff"/><circle cx="7.2" cy="-5" r="2" fill="#263238"/>
+                        <polygon points="11,-1 22,3 11,7" fill="#ff7043"/>
+                     </g></g>
+                     ${pvText(160, 30, 'SCORE 12', '#fff', 15, 'middle', PV_MONO, pvOutline)}
+                     ${pvText(10, 16, 'BEST 27', '#fff', 8, 'start', PV_MONO, pvOutline)}`);
+            },
+
+            // 우주 슈팅
+            'space-shooter': id => {
+                const stars = [[20,20],[48,70],[90,30],[130,92],[200,22],[232,60],[285,28],[300,120],[40,130],[110,150],[250,140],[190,100],[70,100],[270,70]]
+                    .map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 3 === 0 ? 1.4 : 0.9}" fill="#e8eaf6" opacity="${i % 2 ? 0.6 : 0.95}"/>`).join('');
+                const ast = (x, y, r, cls) => `<g transform="translate(${x} ${y})"><g class="pv-a ${cls}">
+                    <circle r="${r}" fill="url(#${id}-rock)" stroke="#5c5f73"/>
+                    <circle cx="${-r * 0.3}" cy="${-r * 0.25}" r="${r * 0.22}" fill="#6b6e82"/><circle cx="${r * 0.35}" cy="${r * 0.3}" r="${r * 0.16}" fill="#6b6e82"/></g></g>`;
+                return pvFrame('우주 슈팅 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1026"/><stop offset="1" stop-color="#241a5e"/></linearGradient>
+                     <radialGradient id="${id}-rock" cx=".35" cy=".3"><stop offset="0" stop-color="#b0b3c4"/><stop offset="1" stop-color="#6e7186"/></radialGradient>
+                     <linearGradient id="${id}-beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#80deea"/><stop offset="1" stop-color="#e0f7fa"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>${stars}
+                     ${ast(60, 56, 13, 'pv-bob')}${ast(160, 52, 15, 'pv-bob2')}${ast(256, 86, 17, 'pv-bob')}
+                     <circle cx="160" cy="66" r="19" fill="#fff59d" opacity=".35"/>
+                     <rect x="158" y="70" width="4" height="46" rx="2" fill="url(#${id}-beam)"/>
+                     <g transform="translate(160 146)">
+                        <polygon points="-6,10 0,26 6,10" fill="#ff9800" class="pv-a pv-flicker"/>
+                        <path d="M0 -34 L10 -6 L18 10 L0 4 L-18 10 L-10 -6Z" fill="#e0e7ff" stroke="#7986cb"/>
+                        <path d="M-10 -6 L-26 12 L-12 8Z M10 -6 L26 12 L12 8Z" fill="#5c6bc0"/>
+                        <ellipse cy="-12" rx="4" ry="8" fill="#26c6da"/>
+                     </g>
+                     <rect x="0" y="0" width="320" height="22" fill="rgba(0,0,0,.4)"/>
+                     ${pvText(8, 15, 'SCORE 01240', '#fff', 10)}
+                     ${pvText(160, 15, 'LV 2', '#80deea', 10, 'middle')}
+                     ${pvHeart(278, 11, 1.2, '#ef5350')}${pvHeart(294, 11, 1.2, '#ef5350')}${pvHeart(310, 11, 1.2, '#455a64')}
+                     ${pvText(8, 168, 'HP', '#fff', 8)}
+                     <rect x="22" y="161" width="90" height="8" rx="4" fill="#263238" stroke="#90a4ae"/>
+                     <rect x="23" y="162" width="62" height="6" rx="3" fill="#66bb6a"/>`);
+            },
+
+            // 반응속도 게임 (두더지 잡기)
+            'whack-a-mole': id => {
+                const mole = (cx, cy, up) => `
+                    <ellipse cx="${cx}" cy="${cy + 2}" rx="30" ry="10" fill="#6d4c41"/>
+                    <ellipse cx="${cx}" cy="${cy + 2}" rx="25" ry="8" fill="#2b1810"/>
+                    <g transform="translate(${cx} ${cy})">
+                        <path d="M-16 8 V${-up + 14} C-16 ${-up - 6} 16 ${-up - 6} 16 ${-up + 14} V8Z" fill="#8d6e63" stroke="#5d4037"/>
+                        <circle cx="-6" cy="${-up + 12}" r="2.6" fill="#212121"/><circle cx="6" cy="${-up + 12}" r="2.6" fill="#212121"/>
+                        <circle cx="-5.2" cy="${-up + 11.2}" r=".9" fill="#fff"/><circle cx="6.8" cy="${-up + 11.2}" r=".9" fill="#fff"/>
+                        <ellipse cy="${-up + 18}" rx="4.5" ry="3" fill="#f48fb1"/>
+                        <rect x="-3" y="${-up + 21}" width="2.6" height="3.6" fill="#fff"/><rect x=".4" y="${-up + 21}" width="2.6" height="3.6" fill="#fff"/>
+                    </g>
+                    <path d="M${cx - 25} ${cy + 2} A25 8 0 0 0 ${cx + 25} ${cy + 2} Z" fill="#6d4c41"/>`;
+                const hole = (cx, cy) => `<ellipse cx="${cx}" cy="${cy + 2}" rx="30" ry="10" fill="#6d4c41"/><ellipse cx="${cx}" cy="${cy + 2}" rx="25" ry="8" fill="#2b1810"/>`;
+                const holes = [[70, 62], [250, 62], [70, 150], [250, 150], [160, 150], [160, 62], [70, 106], [250, 106]].map(([x, y]) => hole(x, y)).join('');
+                return pvFrame('반응속도 게임(두더지 잡기) 화면 예시',
+                    `<linearGradient id="${id}-grass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8bc34a"/><stop offset="1" stop-color="#558b2f"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-grass)"/>
+                     ${holes}${mole(160, 106, 30)}
+                     <g class="pv-a pv-bob">${mole(70, 150, 18)}</g>
+                     ${mole(250, 62, 10)}
+                     <g transform="translate(206 84)"><g class="pv-a pv-swing">
+                        <rect x="-3" y="0" width="6" height="42" rx="2" fill="#a1887f" stroke="#5d4037"/>
+                        <rect x="-15" y="-14" width="30" height="18" rx="4" fill="#e53935" stroke="#8e0000"/>
+                        <rect x="-12" y="-11" width="24" height="4" rx="2" fill="#ff8a80"/>
+                     </g></g>
+                     <rect width="320" height="22" fill="rgba(0,0,0,.45)"/>
+                     ${pvText(8, 15, 'TIME', '#fff', 8)}
+                     <rect x="38" y="7" width="120" height="9" rx="4" fill="#33691e" stroke="#c5e1a5"/>
+                     <rect x="39" y="8" width="72" height="7" rx="3" fill="#ffb300"/>
+                     ${pvText(312, 15, 'SCORE 90', '#fff', 10, 'end')}`);
+            },
+
+            // 스네이크형 아케이드
+            'snake-arcade': id => pvFrame('스네이크형 아케이드 게임 화면 예시',
+                `<pattern id="${id}-grid" patternUnits="userSpaceOnUse" width="32" height="32" patternTransform="translate(0 4)">
+                    <rect width="32" height="32" fill="#2e7d32"/><rect width="16" height="16" fill="#388e3c"/><rect x="16" y="16" width="16" height="16" fill="#388e3c"/></pattern>`,
+                `<rect y="20" width="320" height="160" fill="url(#${id}-grid)"/>
+                 <path d="M40 108 L120 108 L120 60 L200 60 L200 124 L248 124" fill="none" stroke="#01579b" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+                 <path d="M40 108 L120 108 L120 60 L200 60 L200 124 L248 124" fill="none" stroke="#29b6f6" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+                 <path d="M40 108 L120 108 L120 60 L200 60 L200 124 L248 124" fill="none" stroke="#81d4fa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 9"/>
+                 <circle cx="250" cy="124" r="9" fill="#29b6f6" stroke="#01579b"/>
+                 <circle cx="253" cy="120" r="2.6" fill="#fff"/><circle cx="253" cy="128" r="2.6" fill="#fff"/>
+                 <circle cx="254" cy="120" r="1.2" fill="#212121"/><circle cx="254" cy="128" r="1.2" fill="#212121"/>
+                 <path d="M259 124 L267 124 M267 124 L270 121 M267 124 L270 127" stroke="#e53935" stroke-width="1.4" fill="none" class="pv-a pv-blink"/>
+                 <g class="pv-a pv-pulse"><circle cx="296" cy="124" r="7" fill="#e53935" stroke="#8e0000"/><path d="M296 117 Q300 111 305 113 Q301 118 296 117Z" fill="#7cb342"/><circle cx="293.5" cy="121.5" r="1.8" fill="#ff8a80"/></g>
+                 <rect width="320" height="20" fill="#1b2a1d"/>
+                 ${pvText(8, 14, 'SCORE 120', '#fff', 10)}
+                 ${pvText(160, 14, 'BEST 340', '#ffd54f', 9, 'middle')}
+                 ${pvText(312, 14, 'LEN 9', '#81d4fa', 10, 'end')}`),
+
+            // 타워 디펜스
+            'tower-defense': id => {
+                const route = 'M-10 100 L80 100 L80 50 L190 50 L190 130 L330 130';
+                const tower = (x, y, a) => `<g transform="translate(${x} ${y})">
+                    <circle r="12" fill="#546e7a" stroke="#263238" stroke-width="1.5"/>
+                    <g transform="rotate(${a})"><rect x="0" y="-3" width="17" height="6" rx="2" fill="#37474f"/></g>
+                    <circle r="6.5" fill="#cfd8dc" stroke="#455a64"/></g>`;
+                const enemy = (x, y, hp) => `<g transform="translate(${x} ${y})">
+                    <circle r="6.5" fill="#ef5350" stroke="#8e0000"/><circle cx="-2" cy="-1" r="1.2" fill="#fff"/><circle cx="2" cy="-1" r="1.2" fill="#fff"/>
+                    <rect x="-7" y="-13" width="14" height="3" fill="#37474f"/><rect x="-7" y="-13" width="${hp}" height="3" fill="#66bb6a"/></g>`;
+                return pvFrame('타워 디펜스 게임 화면 예시',
+                    `<linearGradient id="${id}-grass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ccc65"/><stop offset="1" stop-color="#689f38"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-grass)"/>
+                     <path d="${route}" fill="none" stroke="#a1887f" stroke-width="28" stroke-linejoin="round"/>
+                     <path d="${route}" fill="none" stroke="#e0c9a0" stroke-width="22" stroke-linejoin="round"/>
+                     <circle cx="135" cy="88" r="42" fill="rgba(255,255,255,.12)" stroke="#fff" stroke-dasharray="4 4" opacity=".7"/>
+                     ${tower(40, 70, 35)}${tower(135, 88, -40)}${tower(238, 100, 160)}
+                     <g class="pv-a pv-march">${enemy(14, 100, 11)}${enemy(46, 100, 8)}</g>
+                     <g class="pv-a pv-march2">${enemy(190, 82, 10)}</g>
+                     <circle cx="150" cy="70" r="2.4" fill="#fff59d" class="pv-a pv-blink"/>
+                     <rect width="320" height="22" fill="rgba(0,0,0,.5)"/>
+                     <circle cx="14" cy="11" r="6" fill="#ffd54f" stroke="#f57f17"/>
+                     ${pvText(25, 15, 'GOLD 120', '#fff', 9)}
+                     ${pvText(160, 15, 'WAVE 3/5', '#ffcc80', 10, 'middle')}
+                     ${pvHeart(284, 11, 1.2, '#ef5350')}${pvHeart(300, 11, 1.2, '#ef5350')}${pvHeart(316, 11, 1.2, '#ef5350')}
+                     <rect y="158" width="320" height="22" fill="rgba(0,0,0,.55)"/>
+                     <g>${[0, 1, 2].map(i => `<rect x="${10 + i * 52}" y="161" width="46" height="16" rx="4" fill="rgba(255,255,255,.14)" stroke="#b0bec5"/>
+                        <circle cx="${22 + i * 52}" cy="169" r="5" fill="${['#cfd8dc', '#80cbc4', '#ffab91'][i]}"/>
+                        ${pvText(32 + i * 52, 172, String([20, 35, 50][i]), '#ffd54f', 8)}`).join('')}</g>`);
+            },
+
+            // 슬라이딩 퍼즐
+            'sliding-puzzle': id => {
+                const grid = [[1, 2, 3], [4, 0, 6], [7, 5, 8]];
+                const fills = ['#ffca28', '#ff7043', '#ab47bc', '#42a5f5', '#26a69a', '#ec407a', '#7e57c2', '#66bb6a'];
+                const tiles = grid.map((row, r) => row.map((n, c) => {
+                    const x = 99 + c * 41, y = 40 + r * 41;
+                    if (n === 0) return `<rect x="${x}" y="${y}" width="38" height="38" rx="6" fill="#1a1050" stroke="#5e35b1" stroke-dasharray="3 3"/>`;
+                    const hint = n === 5 ? `<rect x="${x - 1.5}" y="${y - 1.5}" width="41" height="41" rx="7" fill="none" stroke="#fff" stroke-width="2" class="pv-a pv-blink"/>` : '';
+                    return `<rect x="${x}" y="${y + 2}" width="38" height="38" rx="6" fill="rgba(0,0,0,.35)"/>
+                        <rect x="${x}" y="${y}" width="38" height="38" rx="6" fill="${fills[n - 1]}"/>
+                        <rect x="${x + 3}" y="${y + 3}" width="32" height="8" rx="4" fill="rgba(255,255,255,.25)"/>
+                        ${pvText(x + 19, y + 27, n, '#fff', 20, 'middle', PV_MONO, 'stroke="rgba(0,0,0,.25)" stroke-width="2" paint-order="stroke"')}${hint}`;
+                }).join('')).join('');
+                return pvFrame('슬라이딩 퍼즐 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4527a0"/><stop offset="1" stop-color="#1a237e"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     <rect x="94" y="35" width="132" height="132" rx="10" fill="#311b92" stroke="#9575cd" stroke-width="2"/>
+                     ${tiles}
+                     ${pvText(10, 22, 'MOVES', '#b39ddb', 8)}${pvText(10, 38, '14', '#fff', 16)}
+                     ${pvText(310, 22, 'TIME', '#b39ddb', 8, 'end')}${pvText(310, 38, '00:32', '#fff', 14, 'end')}
+                     ${pvText(10, 168, '1~8 순서로', '#d1c4e9', 8, 'start', PV_SANS)}`);
+            },
+
+            // 매치 퍼즐
+            'match-three': id => {
+                const colors = ['#ef5350', '#42a5f5', '#66bb6a', '#ffee58', '#ab47bc', '#ff9800'];
+                const board = [[0, 1, 2, 3, 4, 5], [3, 5, 0, 1, 2, 4], [1, 1, 1, 4, 0, 3], [4, 2, 5, 0, 3, 1], [0, 3, 1, 2, 5, 4], [2, 4, 3, 5, 1, 0]];
+                const gem = (k, cx, cy) => {
+                    const f = colors[k], s = 'stroke="rgba(0,0,0,.35)" stroke-width="1"';
+                    const shapes = [
+                        `<circle cx="${cx}" cy="${cy}" r="8" fill="${f}" ${s}/>`,
+                        `<polygon points="${cx},${cy - 9} ${cx + 8},${cy} ${cx},${cy + 9} ${cx - 8},${cy}" fill="${f}" ${s}/>`,
+                        `<rect x="${cx - 7}" y="${cy - 7}" width="14" height="14" rx="3" fill="${f}" ${s}/>`,
+                        `<polygon points="${cx},${cy - 9} ${cx + 9},${cy + 7} ${cx - 9},${cy + 7}" fill="${f}" ${s}/>`,
+                        `<polygon points="${cx - 4.5},${cy - 8} ${cx + 4.5},${cy - 8} ${cx + 9},${cy} ${cx + 4.5},${cy + 8} ${cx - 4.5},${cy + 8} ${cx - 9},${cy}" fill="${f}" ${s}/>`,
+                        pvStar(cx, cy, 9.5, 4.2, f, s)
+                    ];
+                    return shapes[k] + `<circle cx="${cx - 2.5}" cy="${cy - 3}" r="1.6" fill="rgba(255,255,255,.55)"/>`;
+                };
+                const cells = board.map((row, r) => row.map((k, c) => gem(k, 103 + c * 23, 46 + r * 23)).join('')).join('');
+                return pvFrame('매치 퍼즐 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1a52"/><stop offset="1" stop-color="#12082b"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     <rect x="89" y="32" width="142" height="142" rx="8" fill="rgba(255,255,255,.08)" stroke="#7e57c2" stroke-width="1.5"/>
+                     ${cells}
+                     <rect x="91" y="80" width="69" height="23" rx="6" fill="rgba(255,255,255,.18)" stroke="#fff" stroke-width="2" class="pv-a pv-blink"/>
+                     ${pvText(10, 24, 'SCORE', '#b39ddb', 8)}${pvText(10, 38, '2,450', '#fff', 13)}
+                     ${pvText(10, 64, 'COMBO', '#b39ddb', 8)}${pvText(10, 80, 'x3', '#ffee58', 16)}
+                     ${pvText(310, 24, 'MOVES', '#b39ddb', 8, 'end')}${pvText(310, 38, '12', '#fff', 13, 'end')}
+                     ${pvText(310, 64, 'GOAL', '#b39ddb', 8, 'end')}${pvText(310, 78, '3000', '#80cbc4', 11, 'end')}`);
+            },
+
+            // 퀴즈 게임
+            'quiz-challenge': id => {
+                const opt = (x, y, letter, label, on) => `
+                    <rect x="${x}" y="${y}" width="138" height="30" rx="9" fill="${on ? '#43a047' : 'rgba(255,255,255,.16)'}" stroke="${on ? '#c8e6c9' : 'rgba(255,255,255,.45)'}" stroke-width="${on ? 2 : 1}" ${on ? 'class="pv-a pv-blink"' : ''}/>
+                    <circle cx="${x + 16}" cy="${y + 15}" r="9" fill="${on ? '#fff' : '#7986cb'}"/>
+                    ${pvText(x + 16, y + 19, letter, on ? '#2e7d32' : '#fff', 11, 'middle')}
+                    ${pvText(x + 34, y + 19, label, '#fff', 11, 'start', PV_SANS)}
+                    ${on ? `<polyline points="${x + 118},${y + 15} ${x + 123},${y + 20} ${x + 130},${y + 10}" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ''}`;
+                return pvFrame('퀴즈 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#283593"/><stop offset="1" stop-color="#6a1b9a"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     <rect x="16" y="10" width="288" height="8" rx="4" fill="rgba(255,255,255,.2)"/>
+                     <rect x="16" y="10" width="86" height="8" rx="4" fill="#4dd0e1"/>
+                     ${pvText(16, 34, 'Q 3 / 10', '#e1bee7', 9)}${pvText(304, 34, '00:07', '#ffcc80', 9, 'end')}
+                     <rect x="16" y="40" width="288" height="46" rx="10" fill="#fff" stroke="#b39ddb" stroke-width="2"/>
+                     ${pvText(160, 69, '태양에서 가장 가까운 행성은?', '#1a237e', 13, 'middle', PV_SANS)}
+                     ${opt(16, 96, 'A', '수성', true)}${opt(166, 96, 'B', '금성', false)}
+                     ${opt(16, 134, 'C', '지구', false)}${opt(166, 134, 'D', '화성', false)}`);
+            },
+
+            // 기억력 카드 게임
+            'memory-cards': id => {
+                const open = { '1,1': 'heart', '3,0': 'heart' };
+                const done = { '0,0': 'star', '2,2': 'star' };
+                const cards = [];
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 4; c++) {
+                        const x = 48 + c * 58, y = 34 + r * 48, key = `${c},${r}`;
+                        const cx = x + 25, cy = y + 20;
+                        if (open[key]) {
+                            cards.push(`<rect x="${x}" y="${y}" width="50" height="40" rx="6" fill="#fff" stroke="#ffd54f" stroke-width="2.5" class="pv-a pv-blink"/>${pvHeart(cx, cy, 2.6, '#e53935')}`);
+                        } else if (done[key]) {
+                            cards.push(`<rect x="${x}" y="${y}" width="50" height="40" rx="6" fill="#fff8e1" stroke="#a5d6a7" stroke-width="2" opacity=".75"/>${pvStar(cx, cy, 13, 6, '#ffb300')}`);
+                        } else {
+                            cards.push(`<rect x="${x}" y="${y + 2}" width="50" height="40" rx="6" fill="rgba(0,0,0,.3)"/><rect x="${x}" y="${y}" width="50" height="40" rx="6" fill="url(#${id}-back)" stroke="#c5cae9"/>
+                                <polygon points="${cx},${cy - 9} ${cx + 8},${cy} ${cx},${cy + 9} ${cx - 8},${cy}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>`);
+                        }
+                    }
+                }
+                return pvFrame('기억력 카드 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#004d40"/><stop offset="1" stop-color="#00796b"/></linearGradient>
+                     <linearGradient id="${id}-back" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7986cb"/><stop offset="1" stop-color="#3949ab"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     ${cards.join('')}
+                     ${pvText(48, 22, 'TRIES 7', '#fff', 10)}${pvText(272, 22, 'PAIRS 1/6', '#ffe082', 10, 'end')}`);
+            },
+
+            // 클리커 · 키우기
+            'clicker-tycoon': id => {
+                const card = (y, name, price, color, on) => `
+                    <g opacity="${on ? 1 : 0.55}">
+                    <rect x="190" y="${y}" width="122" height="40" rx="8" fill="rgba(255,255,255,.1)" stroke="${on ? '#a5d6a7' : 'rgba(255,255,255,.3)'}" stroke-width="${on ? 2 : 1}"/>
+                    <circle cx="209" cy="${y + 20}" r="10" fill="${color}" stroke="rgba(0,0,0,.35)"/>
+                    ${pvText(225, y + 17, name, '#fff', 8.5, 'start', PV_SANS)}
+                    ${pvText(225, y + 32, price, '#ffd54f', 9)}</g>`;
+                return pvFrame('클리커 키우기 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a237e"/><stop offset="1" stop-color="#311b92"/></linearGradient>
+                     <radialGradient id="${id}-btn" cx=".4" cy=".35"><stop offset="0" stop-color="#fff59d"/><stop offset=".6" stop-color="#ffb300"/><stop offset="1" stop-color="#ef6c00"/></radialGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     ${[[20,20],[160,14],[176,60],[30,150],[170,160],[300,170],[184,110]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1" fill="#c5cae9" opacity=".7"/>`).join('')}
+                     ${pvText(100, 28, '1,280', '#ffd54f', 20, 'middle')}
+                     ${pvText(100, 42, '+12 / sec', '#b3e5fc', 8.5, 'middle')}
+                     <g class="pv-a pv-pulse">
+                        <circle cx="100" cy="108" r="52" fill="url(#${id}-btn)" stroke="#fff176" stroke-width="3"/>
+                        <circle cx="100" cy="108" r="44" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+                        ${pvStar(100, 108, 30, 13, '#fff8e1', 'stroke="#ff8f00" stroke-width="2" stroke-linejoin="round"')}
+                     </g>
+                     <g class="pv-a pv-float">${pvText(150, 80, '+1', '#fff', 14, 'middle', PV_MONO, pvOutline)}</g>
+                     ${pvText(200, 20, 'UPGRADES', '#9fa8da', 8)}
+                     ${card(26, '별 수집기 Lv3', '120', '#66bb6a', true)}
+                     ${card(72, '자동 반짝이 Lv1', '500', '#42a5f5', false)}
+                     ${card(118, '별빛 공장 Lv0', '2,000', '#ab47bc', false)}`);
+            },
+
+            // 텍스트 어드벤처
+            'text-adventure': id => pvFrame('텍스트 어드벤처 게임 화면 예시',
+                `<linearGradient id="${id}-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b1410"/><stop offset="1" stop-color="#3e2a1d"/></linearGradient>
+                 <radialGradient id="${id}-glow" cx=".5" cy=".5"><stop offset="0" stop-color="#ffcc80" stop-opacity=".55"/><stop offset="1" stop-color="#ffcc80" stop-opacity="0"/></radialGradient>`,
+                `<rect width="320" height="180" fill="#120d0a"/>
+                 <rect width="320" height="92" fill="url(#${id}-wall)"/>
+                 <polygon points="0,74 320,74 320,92 0,92" fill="#2a1c12"/>
+                 <rect x="140" y="16" width="28" height="32" fill="#0d1b3a" stroke="#6d4c41" stroke-width="2"/>
+                 <circle cx="156" cy="28" r="7" fill="#fff9c4"/><circle cx="160" cy="26" r="6" fill="#0d1b3a"/>
+                 <path d="M208 76 V30 Q208 14 232 14 Q256 14 256 30 V76Z" fill="#5d4037" stroke="#3e2723" stroke-width="2"/>
+                 <path d="M218 76 V32 Q218 22 232 22 Q246 22 246 32 V76Z" fill="#6d4c41"/>
+                 <circle cx="246" cy="48" r="2.4" fill="#ffd54f"/>
+                 <rect x="212" y="75" width="40" height="1.6" fill="#ffd54f" opacity=".8"/>
+                 <circle cx="92" cy="50" r="34" fill="url(#${id}-glow)" class="pv-a pv-blink"/>
+                 <rect x="68" y="66" width="48" height="5" fill="#6d4c41"/><rect x="72" y="71" width="4" height="16" fill="#4e342e"/><rect x="108" y="71" width="4" height="16" fill="#4e342e"/>
+                 <rect x="88" y="46" width="8" height="20" fill="#ffe0b2" stroke="#bcaaa4"/>
+                 <ellipse cx="92" cy="41" rx="3.6" ry="6.5" fill="#ffa726" class="pv-a pv-flicker"/><ellipse cx="92" cy="43" rx="1.6" ry="3.5" fill="#fff59d"/>
+                 <rect x="8" y="96" width="304" height="48" rx="6" fill="rgba(0,0,0,.78)" stroke="#d7b98a"/>
+                 <rect x="14" y="89" width="42" height="11" rx="3" fill="#d7b98a"/>
+                 ${pvText(35, 97.5, '나레이터', '#3e2723', 7.5, 'middle', PV_SANS)}
+                 ${pvText(16, 112, '문 뒤에서 희미한 소리가 들린다.', '#f5f5f5', 8.5, 'start', PV_SANS)}
+                 ${pvText(16, 123, '촛불이 흔들리며 벽에 그림자가 비친다.', '#f5f5f5', 8.5, 'start', PV_SANS)}
+                 ${pvText(16, 134, '어떻게 할까?', '#ffd54f', 8.5, 'start', PV_SANS)}
+                 <polygon points="298,134 306,134 302,139" fill="#d7b98a" class="pv-a pv-blink"/>
+                 <rect x="8" y="150" width="148" height="22" rx="6" fill="rgba(215,185,138,.25)" stroke="#ffd54f" stroke-width="1.5"/>
+                 <rect x="164" y="150" width="148" height="22" rx="6" fill="rgba(255,255,255,.08)" stroke="#a1887f"/>
+                 ${pvText(82, 165, '1  문을 연다', '#fff', 9.5, 'middle', PV_SANS)}
+                 ${pvText(238, 165, '2  촛불을 든다', '#e0e0e0', 9.5, 'middle', PV_SANS)}`),
+
+            // 방탈출 게임
+            'escape-room': id => {
+                const slot = (i, item) => `<rect x="${10 + i * 32}" y="152" width="26" height="24" rx="5" fill="rgba(255,255,255,.08)" stroke="#90a4ae"/>${item || ''}`;
+                return pvFrame('방탈출 게임 화면 예시',
+                    `<linearGradient id="${id}-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#455a64"/><stop offset="1" stop-color="#263238"/></linearGradient>
+                     <linearGradient id="${id}-door" x1="0" x2="1"><stop offset="0" stop-color="#6d4c41"/><stop offset="1" stop-color="#4e342e"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="#1c262b"/>
+                     <rect width="320" height="128" fill="url(#${id}-wall)"/>
+                     ${[40, 80, 120, 160, 200, 240, 280].map(x => `<line x1="${x}" y1="0" x2="${x}" y2="128" stroke="rgba(255,255,255,.05)"/>`).join('')}
+                     <rect y="128" width="320" height="20" fill="#37474f"/><rect y="128" width="320" height="3" fill="#78909c"/>
+                     <rect x="36" y="38" width="80" height="90" rx="3" fill="url(#${id}-door)" stroke="#3e2723" stroke-width="3"/>
+                     <rect x="46" y="48" width="26" height="30" rx="2" fill="none" stroke="#3e2723"/><rect x="80" y="48" width="26" height="30" rx="2" fill="none" stroke="#3e2723"/>
+                     <rect x="46" y="86" width="26" height="30" rx="2" fill="none" stroke="#3e2723"/><rect x="80" y="86" width="26" height="30" rx="2" fill="none" stroke="#3e2723"/>
+                     <g transform="translate(76 86)" class="pv-a pv-blink">
+                        <path d="M-6 0 V-7 A6 6 0 0 1 6 -7 V0" fill="none" stroke="#cfd8dc" stroke-width="3"/>
+                        <rect x="-9" y="0" width="18" height="14" rx="3" fill="#ffb300" stroke="#e65100"/><circle cy="6" r="2" fill="#5d4037"/>
+                     </g>
+                     <rect x="180" y="28" width="52" height="32" fill="#4e342e" stroke="#ffd54f" stroke-width="2"/>
+                     <polygon points="184,56 200,38 212,50 220,42 228,56" fill="#66bb6a"/><circle cx="218" cy="36" r="4" fill="#fff59d"/>
+                     <rect x="170" y="78" width="100" height="50" rx="3" fill="#6d4c41" stroke="#3e2723" stroke-width="2"/>
+                     <rect x="176" y="84" width="88" height="19" rx="2" fill="#8d6e63" stroke="#3e2723"/>
+                     <rect x="176" y="106" width="88" height="19" rx="2" fill="#8d6e63" stroke="#3e2723"/>
+                     <rect x="176" y="103" width="88" height="3" fill="#1b0f0a"/>
+                     <circle cx="220" cy="94" r="3" fill="#ffd54f"/><circle cx="220" cy="116" r="3" fill="#ffd54f"/>
+                     <rect y="148" width="320" height="32" fill="rgba(0,0,0,.6)"/>
+                     ${slot(0, `<g transform="translate(23 164)"><circle cx="-3" cy="-3" r="4.5" fill="none" stroke="#ffd54f" stroke-width="2.4"/><rect x="0" y="-4" width="9" height="2.6" fill="#ffd54f"/><rect x="5" y="-2" width="2.2" height="4.5" fill="#ffd54f"/></g>`)}
+                     ${slot(1, '<rect x="48" y="157" width="14" height="14" fill="#fff8e1" stroke="#bcaaa4"/><line x1="51" y1="162" x2="59" y2="162" stroke="#8d6e63"/><line x1="51" y1="166" x2="57" y2="166" stroke="#8d6e63"/>')}
+                     ${slot(2)}${slot(3)}
+                     ${pvText(10, 20, '04:12', '#ff8a80', 12, 'start', PV_MONO, pvOutline)}
+                     <rect x="252" y="8" width="60" height="18" rx="6" fill="#00897b" stroke="#80cbc4"/>
+                     ${pvText(282, 20.5, 'HINT 3', '#fff', 9, 'middle')}
+                     ${pvText(312, 170, '단서 2/3', '#ffe082', 9, 'end', PV_SANS)}`);
+            }
         };
 
         // 상태 변수
@@ -565,14 +926,13 @@
             return '★'.repeat(n) + '☆'.repeat(5 - n);
         }
 
-        // 이모지 미리보기 박스
+        // 게임 화면 미리보기: 장면 맵 조회, 없으면 단색 플레이스홀더
         function renderPreview(item) {
-            const p = previewEmojis[item.id] || { bg: 'from-slate-900 to-slate-950', items: ['🎮'] };
-            const emojis = p.items.map(e => `<span class="text-3xl">${escapeHtml(e)}</span>`).join('');
-            return `
-                <div class="w-full h-36 bg-gradient-to-br ${p.bg} rounded-xl border border-slate-700 flex items-center justify-center gap-3 flex-wrap p-3 select-none" aria-hidden="true">
-                    ${emojis}
-                </div>`;
+            const scene = previewScenes[item.id];
+            if (!scene) {
+                return '<div class="w-full bg-slate-900 rounded-xl border border-slate-700" style="aspect-ratio:16/9" role="img" aria-label="게임 화면 예시"></div>';
+            }
+            return `<div class="rounded-xl overflow-hidden border border-slate-700">${scene('pv-' + item.id)}</div>`;
         }
 
         // 카드 렌더링 함수
