@@ -701,6 +701,7 @@ body.fluid .crit-row{grid-template-columns:1fr}
     <button class="tb-btn" id="btnToc" title="목차 열기">📚 <span class="lbl">목차</span></button>
     <button class="tb-btn" id="btnLib" title="프롬프트 라이브러리">💬 <span class="lbl">프롬프트</span></button>
     <button class="tb-btn" id="btnUiDict" title="게임 UI 사전">🎨 <span class="lbl">UI 사전</span></button>
+    <button class="tb-btn" id="btnGameDict" title="게임 유형 사전">🕹️ <span class="lbl">게임 유형</span></button>
     <button class="tb-btn" id="btnBadge" title="내 배지 보기">🏅 <span class="badge-count" id="badgeCount">0/8</span></button>
     <button class="tb-btn" id="btnTeacher" aria-pressed="false" title="교사용 안내 보기">👩‍🏫 <span class="lbl">교사용</span></button>
     <button class="tb-btn" id="btnFull" title="전체 화면">⛶ <span class="lbl" id="fullLbl">전체 화면</span></button>
@@ -2244,6 +2245,14 @@ body.fluid .crit-row{grid-template-columns:1fr}
  </div>
 </div>
 
+<div class="modal" id="gamedict" aria-hidden="true">
+ <div class="scrim" data-close></div>
+ <div class="panel uidict-panel" role="dialog" aria-label="게임 유형 사전">
+  <div class="panel-head"><h3>🕹️ 게임 유형 사전</h3><button class="tb-btn" data-close>✕ 닫기</button></div>
+  <iframe id="gamedictFrame" title="게임 유형 사전" data-src="game-dictionary.html" loading="lazy"></iframe>
+ </div>
+</div>
+
 <div class="ask-bubble hidden" id="askBubble"><b>🙋 생각해 볼까요?</b><span id="askText"></span></div>
 <aside class="teacher hidden" id="teacher" aria-live="polite"><h4>👩‍🏫 교사용 안내</h4><dl id="teacherBody"></dl></aside>
 <div class="toast" id="toast" role="status"></div>
@@ -2449,6 +2458,11 @@ $('#btnUiDict').addEventListener('click',()=>{
   const f=$('#uidictFrame');
   if(!f.getAttribute('src'))f.setAttribute('src',f.dataset.src);
   openOverlay($('#uidict'));
+});
+$('#btnGameDict').addEventListener('click',()=>{
+  const f=$('#gamedictFrame');
+  if(!f.getAttribute('src'))f.setAttribute('src',f.dataset.src);
+  openOverlay($('#gamedict'));
 });
 window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data==='ui-dict-close')closeOverlays();});
 $('#btnBadge').addEventListener('click',()=>go(N-1));

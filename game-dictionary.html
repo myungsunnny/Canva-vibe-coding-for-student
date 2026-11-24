@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게임 유형 사전 | Game Genre Dictionary</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans KR & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome 아이콘 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f8fafc;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        /* 포커스 링 유지 */
+        button:focus-visible, input:focus-visible {
+            outline: 2px solid #a5b4fc;
+            outline-offset: 2px;
+        }
+        /* 게임 화면 미리보기 애니메이션 */
+        .pv-a { animation-iteration-count: infinite; animation-timing-function: ease-in-out; animation-direction: alternate; }
+        .pv-drift { animation-name: pvDrift; animation-duration: 7s; }
+        .pv-drift2 { animation-name: pvDrift2; animation-duration: 9s; }
+        .pv-bob { animation-name: pvBob; animation-duration: 1.3s; }
+        .pv-bob2 { animation-name: pvBob; animation-duration: 1.7s; }
+        .pv-march { animation-name: pvMarch; animation-duration: 3s; animation-timing-function: linear; }
+        .pv-march2 { animation-name: pvMarchY; animation-duration: 2.4s; animation-timing-function: linear; }
+        .pv-blink { animation-name: pvBlink; animation-duration: .9s; }
+        .pv-pulse { animation-name: pvPulse; animation-duration: 1s; transform-box: fill-box; transform-origin: center; }
+        .pv-flicker { animation-name: pvFlicker; animation-duration: .3s; transform-box: fill-box; transform-origin: center bottom; }
+        .pv-float { animation-name: pvFloat; animation-duration: 1.5s; animation-direction: normal; animation-timing-function: ease-out; }
+        .pv-swing { animation-name: pvSwing; animation-duration: .8s; transform-origin: 0px 42px; }
+        @keyframes pvDrift { to { transform: translateX(-36px); } }
+        @keyframes pvDrift2 { to { transform: translateX(26px); } }
+        @keyframes pvBob { to { transform: translateY(-5px); } }
+        @keyframes pvMarch { to { transform: translateX(36px); } }
+        @keyframes pvMarchY { to { transform: translateY(32px); } }
+        @keyframes pvBlink { to { opacity: .25; } }
+        @keyframes pvPulse { to { transform: scale(1.07); } }
+        @keyframes pvFlicker { to { transform: scale(.85, 1.15); } }
+        @keyframes pvFloat { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-16px); opacity: 0; } }
+        @keyframes pvSwing { from { transform: rotate(-25deg); } to { transform: rotate(5deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .pv-a { animation: none !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 상단 헤더 -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-dice text-white text-xl" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                        게임 유형 사전
+                    </h1>
+                    <p class="text-xs text-slate-300">어떤 게임을 만들까? 유형을 보고 아이디어와 프롬프트를 가져가세요</p>
+                </div>
+            </div>
+
+            <!-- 검색창 -->
+            <div class="relative w-full sm:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm" aria-hidden="true"></i>
+                <input type="text" id="searchInput" aria-label="게임 유형 검색" placeholder="이름, 영어, 태그, 설명 검색..."
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+            </div>
+        </div>
+
+        <!-- 카테고리 필터 탭 -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-3 overflow-x-auto">
+            <div class="flex space-x-2" id="categoryTabs" role="group" aria-label="카테고리 필터">
+                <button data-category="all" aria-label="전체 보기" class="category-btn active px-4 py-1.5 rounded-lg text-sm font-bold bg-indigo-600 text-white transition whitespace-nowrap">
+                    전체
+                </button>
+                <button data-category="action" aria-label="액션·반응 유형 보기" class="category-btn px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">
+                    🎯 액션·반응
+                </button>
+                <button data-category="puzzle" aria-label="퍼즐 유형 보기" class="category-btn px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">
+                    🧩 퍼즐
+                </button>
+                <button data-category="brain" aria-label="두뇌·지식 유형 보기" class="category-btn px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">
+                    🧠 두뇌·지식
+                </button>
+                <button data-category="story" aria-label="이야기·탈출 유형 보기" class="category-btn px-4 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">
+                    📖 이야기·탈출
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- 게임 유형 카드 그리드 -->
+        <div id="genreGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- JavaScript로 카드가 동적 생성됩니다 -->
+        </div>
+
+        <!-- 검색 결과 없음 표시 -->
+        <div id="emptyState" class="hidden text-center py-20">
+            <div class="text-5xl mb-4">🔍</div>
+            <h3 class="text-xl font-bold text-slate-300">검색 결과가 없습니다</h3>
+            <p class="text-slate-400 text-sm mt-2">다른 키워드나 영문 명칭으로 검색해보세요.</p>
+        </div>
+
+    </main>
+
+    <!-- 하단 푸터 -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-6 text-center text-slate-400 text-xs">
+        <p>학생들의 창의적인 게임 개발과 바이브 코딩을 응원합니다! 🚀</p>
+    </footer>
+
+    <!-- 복사 결과 토스트 메시지 -->
+    <div id="toast" role="status" aria-live="polite" class="fixed bottom-6 right-6 bg-emerald-700 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 font-medium text-sm">
+        <i class="fa-solid fa-check-circle" aria-hidden="true"></i>
+        <span>프롬프트가 클립보드에 복사되었습니다!</span>
+    </div>
+
+    <script>
+        // 게임 유형 데이터 (docs/genres.md 원문)
+        const gameGenreData = [
+            {
+                "id": "runner-jump",
+                "category": "action",
+                "koName": "러너 · 점프 게임",
+                "enName": "Runner / Jump Game",
+                "tags": [
+                    "점프",
+                    "장애물",
+                    "최고기록"
+                ],
+                "description": "캐릭터가 앞으로 달리거나 날아가는 동안 장애물을 피해 점프하는 게임입니다. 타이밍을 맞추는 것이 가장 중요해서 처음 만들기에 좋습니다.",
+                "howItWorks": [
+                    "아무것도 누르지 않으면 캐릭터가 중력 때문에 아래로 내려갑니다.",
+                    "화면을 누르거나 스페이스바를 누르면 위로 점프합니다.",
+                    "장애물에 닿으면 끝나고, 장애물 하나를 지날 때마다 점수가 올라갑니다."
+                ],
+                "difficulty": 2,
+                "exampleIdeas": [
+                    "알파벳 기둥 사이를 날아가는 종이비행기",
+                    "쓰레기를 피해 달리는 지구 지킴이",
+                    "플래피 버드 스타일의 우리 반 마스코트 날기"
+                ],
+                "uiParts": [
+                    "헤드업 디스플레이 (허드)",
+                    "게임 오버 / 결과 모달창",
+                    "가상 조이스틱 (컨트롤 패드)"
+                ],
+                "prompt": "초등 고학년이 즐길 수 있는 한 페이지 점프 게임을 만들어줘. 주인공은 우리 반 마스코트로 내가 정한 동물 캐릭터야. 스페이스바나 화면 터치를 하면 위로 점프하고, 누르지 않으면 중력으로 천천히 떨어져. 위아래에서 기둥 장애물이 오른쪽에서 왼쪽으로 계속 움직여. 장애물 하나를 통과할 때마다 1점을 올리고, 장애물이나 바닥에 닿으면 게임이 끝나. 점수는 화면 위쪽에 크게 보여주고, 끝나면 최고 점수와 다시 시작 버튼을 보여줘. 디자인은 밝은 파스텔 색의 귀여운 스타일로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 게임 안에 넣지 말아줘.",
+                "upgrade": [
+                    "점수 10점마다 속도를 조금씩 빠르게 하기",
+                    "코인 아이템을 먹으면 보너스 점수 받기"
+                ],
+                "caution": "유명 게임의 캐릭터와 그림은 그대로 쓰지 말고 내가 직접 만든 캐릭터를 사용합니다."
+            },
+            {
+                "id": "space-shooter",
+                "category": "action",
+                "koName": "우주 슈팅 게임",
+                "enName": "Space Shooter",
+                "tags": [
+                    "발사",
+                    "조종",
+                    "점수"
+                ],
+                "description": "우주선을 좌우로 움직이며 하늘에서 내려오는 운석을 레이저로 치우는 게임입니다. 키보드 입력과 충돌 판정을 배우기 좋습니다.",
+                "howItWorks": [
+                    "좌우 방향키로 우주선을 움직이고 스페이스바로 레이저를 발사합니다.",
+                    "운석이 위에서 계속 내려오고, 레이저가 맞으면 운석이 사라지며 점수가 올라갑니다.",
+                    "운석이 우주선에 닿으면 생명이 줄고, 생명이 0이 되면 끝납니다."
+                ],
+                "difficulty": 3,
+                "exampleIdeas": [
+                    "우주 쓰레기를 치우는 청소 로봇",
+                    "바닷속 오염물질을 치우는 잠수함",
+                    "지구로 떨어지는 소행성을 막는 방어 위성"
+                ],
+                "uiParts": [
+                    "체력 게이지 (HP 바)",
+                    "헤드업 디스플레이 (허드)",
+                    "조준점 (크로스헤어)",
+                    "게임 오버 / 결과 모달창"
+                ],
+                "prompt": "초등 고학년과 중학생이 즐길 수 있는 우주 청소 슈팅 게임을 만들어줘. 주인공은 내가 만든 청소 우주선이고 좌우 방향키로 움직여. 스페이스바를 누르면 레이저가 위로 발사돼. 운석은 위에서 무작위 위치로 내려오고, 레이저에 맞으면 사라지면서 10점을 줘. 운석이 우주선에 닿으면 생명 하트가 하나 줄고, 하트가 3개 모두 없어지면 게임이 끝나. 점수와 남은 생명은 화면 위쪽에 보여주고, 끝나면 최종 점수와 다시 시작 버튼을 보여줘. 디자인은 어두운 우주 배경에 네온 색 우주선으로 만들어줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "3점 연속 명중하면 레이저가 두 줄로 나가는 파워업 추가하기",
+                    "점수가 올라갈수록 운석이 더 빨리 내려오는 레벨 만들기"
+                ],
+                "caution": "적은 운석·쓰레기 같은 사물로 하고, 사람이나 동물을 공격하는 장면은 넣지 않으며 유명 우주선 디자인을 베끼지 않습니다."
+            },
+            {
+                "id": "whack-a-mole",
+                "category": "action",
+                "koName": "반응속도 게임 (두더지 잡기)",
+                "enName": "Whack-a-Mole / Reaction Game",
+                "tags": [
+                    "반응속도",
+                    "클릭",
+                    "제한시간"
+                ],
+                "description": "구멍에서 불쑥 나타나는 목표를 빠르게 눌러서 점수를 얻는 게임입니다. 제한시간과 무작위 위치를 배우기 좋습니다.",
+                "howItWorks": [
+                    "3×3 구멍 중 무작위로 한 곳에서 목표가 올라옵니다.",
+                    "목표가 사라지기 전에 누르면 점수를 얻고, 놓치면 점수가 없습니다.",
+                    "30초 제한시간이 끝나면 최종 점수를 보여줍니다."
+                ],
+                "difficulty": 1,
+                "exampleIdeas": [
+                    "영어 단어 카드 두더지 잡기",
+                    "정답 숫자만 누르는 곱셈 두더지",
+                    "재활용품만 골라서 누르기 (다른 것은 감점)"
+                ],
+                "uiParts": [
+                    "헤드업 디스플레이 (허드)",
+                    "알림 배너 & 퀘스트 트래커",
+                    "게임 오버 / 결과 모달창"
+                ],
+                "prompt": "초등 고학년이 즐길 수 있는 반응속도 게임을 만들어줘. 화면에 3×3 구멍이 있고 무작위로 한 구멍에서 귀여운 캐릭터가 나타났다 1초 뒤에 사라져. 마우스나 터치로 캐릭터를 누르면 10점을 얻고 반짝이는 효과를 보여줘. 제한시간은 30초이고 위쪽에 남은 시간과 점수를 보여줘. 시간이 끝나면 최종 점수와 다시 시작 버튼을 보여줘. 디자인은 잔디밭 배경의 밝고 귀여운 스타일로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "눌러서는 안 되는 방해 캐릭터를 섞어 누르면 감점하기",
+                    "시간이 갈수록 캐릭터가 더 빨리 사라지게 하기"
+                ],
+                "caution": "때리는 느낌 대신 '콕 눌러 잡기' 표현을 쓰고, 두더지 같은 흔한 캐릭터라도 기존 게임의 그림을 그대로 쓰지 않습니다."
+            },
+            {
+                "id": "snake-arcade",
+                "category": "action",
+                "koName": "스네이크형 아케이드",
+                "enName": "Snake-style Arcade",
+                "tags": [
+                    "방향키",
+                    "성장",
+                    "격자"
+                ],
+                "description": "방향키로 길쭉한 캐릭터를 움직이며 먹이를 먹고 점점 길어지는 게임입니다. 격자 위의 움직임과 충돌 규칙을 배우기 좋습니다.",
+                "howItWorks": [
+                    "방향키로 이동 방향을 바꾸면 캐릭터가 격자 칸을 따라 계속 움직입니다.",
+                    "먹이를 먹으면 몸이 한 칸 길어지고 점수가 올라갑니다.",
+                    "벽이나 자기 몸에 닿으면 게임이 끝납니다."
+                ],
+                "difficulty": 3,
+                "exampleIdeas": [
+                    "과일을 모으며 길어지는 기차",
+                    "별을 모으는 은하수 꼬리",
+                    "알파벳을 순서대로 먹어 단어 만들기"
+                ],
+                "uiParts": [
+                    "헤드업 디스플레이 (허드)",
+                    "가상 조이스틱 (컨트롤 패드)",
+                    "게임 오버 / 결과 모달창"
+                ],
+                "prompt": "초등 고학년이 즐길 수 있는 스네이크 스타일 게임을 만들어줘. 20×20 격자판 위에서 기차 모양 캐릭터가 계속 앞으로 움직이고 방향키로 방향을 바꿔. 과일이 무작위 칸에 하나씩 나타나고, 먹으면 기차가 한 칸 길어지며 10점을 얻어. 벽이나 자기 몸에 부딪히면 게임이 끝나. 점수는 위쪽에 보여주고, 끝나면 최고 점수와 다시 시작 버튼을 보여줘. 모바일에서도 할 수 있게 화면에 방향 버튼 4개를 넣어줘. 디자인은 깔끔한 레트로 픽셀 스타일로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "속도를 선택하는 난이도 버튼(쉬움·보통·어려움) 만들기",
+                    "가끔 나타나는 보너스 별을 먹으면 20점 얻기"
+                ],
+                "caution": "유명 모바일 게임의 이름과 캐릭터를 그대로 쓰지 않고 나만의 캐릭터를 사용합니다."
+            },
+            {
+                "id": "tower-defense",
+                "category": "action",
+                "koName": "타워 디펜스",
+                "enName": "Tower Defense",
+                "tags": [
+                    "전략",
+                    "배치",
+                    "웨이브"
+                ],
+                "description": "길을 따라 오는 방해꾼을 막기 위해 방어 도구를 알맞은 곳에 놓는 게임입니다. 어디에 무엇을 놓을지 생각하는 전략이 중요합니다.",
+                "howItWorks": [
+                    "정해진 길을 따라 방해꾼이 입구에서 출구로 움직입니다.",
+                    "코인으로 길 옆 칸에 방어 도구를 설치하면 사거리 안의 방해꾼을 자동으로 공격합니다.",
+                    "방해꾼이 출구에 닿으면 체력이 줄고, 체력이 0이 되면 끝납니다."
+                ],
+                "difficulty": 5,
+                "exampleIdeas": [
+                    "먼지 구름에게서 교실 지키기",
+                    "잡초를 막아 학교 텃밭 지키기",
+                    "쓰레기 로봇에게서 바다 지키기"
+                ],
+                "uiParts": [
+                    "체력 게이지 (HP 바)",
+                    "인벤토리 & 그리드 슬롯",
+                    "알림 배너 & 퀘스트 트래커",
+                    "스킬 슬롯 & 쿨타임"
+                ],
+                "prompt": "중학생이 만들 수 있는 한 페이지 타워 디펜스 게임을 만들어줘. 화면에는 구불구불한 길이 있고 먼지 구름이 입구에서 출구로 천천히 움직여. 아래 도구 바에서 물총 타워를 골라 길 옆 빈 칸을 눌러 설치할 수 있고, 타워는 사거리 안의 먼지 구름을 자동으로 맞혀. 구름을 없앨 때마다 코인 5개를 얻고, 타워 설치에는 코인 20개가 필요해. 구름이 출구에 닿으면 교실 체력이 1 줄고, 체력 10이 모두 없어지면 게임이 끝나. 3번의 웨이브로 나누어 점점 구름 수를 늘리고, 모두 막으면 승리 화면을 보여줘. 디자인은 밝은 교실 그림 스타일로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "타워를 눌러 공격력을 올리는 업그레이드 기능 추가하기",
+                    "느리게 하는 타워 등 두 번째 종류의 타워 만들기"
+                ],
+                "caution": "방어 대상은 사물이나 자연으로 하고, 사람이나 동물을 해치는 설정은 쓰지 않으며 유명 게임의 타워·몬스터 그림은 베끼지 않습니다."
+            },
+            {
+                "id": "sliding-puzzle",
+                "category": "puzzle",
+                "koName": "슬라이딩 퍼즐",
+                "enName": "Sliding Puzzle",
+                "tags": [
+                    "퍼즐",
+                    "조각 맞추기",
+                    "이동 횟수"
+                ],
+                "description": "섞인 조각을 한 칸씩 밀어서 올바른 순서로 맞추는 퍼즐입니다. 규칙은 단순하지만 어떻게 밀지 생각해야 합니다.",
+                "howItWorks": [
+                    "3×3 판에 숫자 조각 8개와 빈칸 1개가 섞여 있습니다.",
+                    "빈칸 옆에 있는 조각을 누르면 빈칸으로 이동합니다.",
+                    "1부터 8까지 순서대로 맞추면 성공이고 이동 횟수를 기록합니다."
+                ],
+                "difficulty": 3,
+                "exampleIdeas": [
+                    "우리 학교 마스코트 그림 맞추기",
+                    "한국 지도 조각 맞추기",
+                    "역사 인물 연표 카드 순서 맞추기"
+                ],
+                "uiParts": [
+                    "헤드업 디스플레이 (허드)",
+                    "알림 배너 & 퀘스트 트래커",
+                    "게임 오버 / 결과 모달창"
+                ],
+                "prompt": "초등 고학년이 즐길 수 있는 슬라이딩 퍼즐 게임을 만들어줘. 3×3 판에 숫자 조각 1~8과 빈칸 하나가 있고 시작할 때 항상 풀 수 있는 상태로 섞어줘. 빈칸 옆의 조각을 누르면 빈칸으로 한 칸 움직여. 위쪽에 이동 횟수와 경과 시간을 보여주고, 1부터 8까지 순서대로 맞추면 '성공' 화면과 기록을 보여줘. 섞기 버튼과 처음부터 버튼도 넣어줘. 디자인은 둥근 모서리의 파스텔 색 조각으로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "판 크기를 3×3, 4×4로 고르게 하기",
+                    "숫자 대신 내가 직접 그린 그림 조각으로 바꾸기"
+                ],
+                "caution": "그림 조각은 직접 만든 그림이나 이용 조건을 확인한 이미지만 쓰고, 사람 얼굴 사진은 쓰지 않습니다."
+            },
+            {
+                "id": "match-three",
+                "category": "puzzle",
+                "koName": "매치 퍼즐 (같은 그림 맞추기)",
+                "enName": "Match-Three Puzzle",
+                "tags": [
+                    "같은 그림",
+                    "연쇄",
+                    "점수"
+                ],
+                "description": "같은 모양 세 개 이상을 가로나 세로로 나란히 맞춰 없애는 퍼즐입니다. 한 번에 많이 없앨수록 점수가 커집니다.",
+                "howItWorks": [
+                    "격자판에 여러 모양의 블록이 채워져 있고, 이웃한 두 블록을 서로 바꿀 수 있습니다.",
+                    "같은 모양이 3개 이상 이어지면 사라지고, 위의 블록이 아래로 내려와 빈칸이 채워집니다.",
+                    "제한된 이동 횟수 안에 목표 점수를 넘으면 성공합니다."
+                ],
+                "difficulty": 4,
+                "exampleIdeas": [
+                    "분리배출 그림 3개 맞추기",
+                    "별자리 모양 3개 맞추기",
+                    "영어 단어 그림 카드 3개 맞추기"
+                ],
+                "uiParts": [
+                    "헤드업 디스플레이 (허드)",
+                    "경험치 바 & 레벨 표시",
+                    "게임 오버 / 결과 모달창"
+                ],
+                "prompt": "초등 고학년과 중학생이 즐길 수 있는 매치 퍼즐 게임을 만들어줘. 8×8 판에 분리배출 그림 5종류(캔, 병, 종이, 비닐, 플라스틱)가 무작위로 놓여 있어. 이웃한 두 그림을 눌러서 서로 바꿀 수 있고, 같은 그림이 가로나 세로로 3개 이상 이어지면 사라지면서 3개당 10점을 얻어. 사라진 자리는 위에서 새 그림이 내려와 채워. 이동 횟수는 20번이고 목표 점수 300점을 넘으면 성공, 이동이 끝나도 못 넘으면 실패 화면을 보여줘. 위쪽에 점수, 남은 이동 횟수, 목표 점수를 보여줘. 디자인은 알록달록하고 깔끔한 아이콘 스타일로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "4개 이상 맞추면 가로줄 전체를 지우는 특수 블록 만들기",
+                    "레벨이 오를수록 목표 점수를 높이기"
+                ],
+                "caution": "유명 매치 퍼즐 게임의 캐릭터와 블록 모양, 이름을 그대로 쓰지 않습니다."
+            },
+            {
+                "id": "quiz-challenge",
+                "category": "brain",
+                "koName": "퀴즈 게임",
+                "enName": "Quiz Game",
+                "tags": [
+                    "문제",
+                    "정답 확인",
+                    "점수"
+                ],
+                "description": "문제를 읽고 정답을 골라 점수를 얻는 게임입니다. 우리 반이 배우는 내용을 소재로 쉽게 바꿀 수 있습니다.",
+                "howItWorks": [
+                    "문제와 보기 4개가 한 번에 하나씩 나옵니다.",
+                    "보기를 고르면 정답인지 바로 알려 주고 맞으면 점수가 올라갑니다.",
+                    "마지막 문제가 끝나면 맞힌 개수와 등급을 보여줍니다."
+                ],
+                "difficulty": 1,
+                "exampleIdeas": [
+                    "우리 반 과학 단원 OX 퀴즈",
+                    "세계 나라 수도 맞히기",
+                    "맞춤법·사자성어 퀴즈"
+                ],
+                "uiParts": [
+                    "헤드업 디스플레이 (허드)",
+                    "알림 배너 & 퀘스트 트래커",
+                    "게임 오버 / 결과 모달창"
+                ],
+                "prompt": "초등 고학년이 풀 수 있는 4지선다 퀴즈 게임을 만들어줘. 주제는 '태양계 행성'이고 문제는 10개야. 화면에는 문제와 보기 4개가 한 번에 하나씩 나오고, 보기를 누르면 정답은 초록색, 오답은 빨간색으로 보여주면서 한 줄 해설을 알려줘. 한 문제를 맞힐 때마다 10점을 주고, 10초 안에 풀지 못하면 오답으로 처리해. 위쪽에 문제 번호, 남은 시간, 점수를 보여줘. 마지막 문제가 끝나면 맞힌 개수와 별 1~3개 등급, 다시 하기 버튼을 보여줘. 디자인은 깔끔한 우주 테마로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "문제를 풀 때마다 연속 정답 보너스 점수 주기",
+                    "문제 목록을 화면에서 직접 입력해 바꿀 수 있게 하기"
+                ],
+                "caution": "문제와 해설은 교과서나 믿을 수 있는 자료로 확인하고, 책이나 웹사이트의 문제를 그대로 복사하지 않습니다."
+            },
+            {
+                "id": "memory-cards",
+                "category": "brain",
+                "koName": "기억력 카드 게임",
+                "enName": "Memory Card Match",
+                "tags": [
+                    "기억력",
+                    "짝 찾기",
+                    "뒤집기"
+                ],
+                "description": "뒤집힌 카드의 그림을 기억해 두 장씩 짝을 찾는 게임입니다. 카드를 뒤집는 효과와 짝 확인 규칙을 배우기 좋습니다.",
+                "howItWorks": [
+                    "카드 16장이 뒷면으로 놓여 있고, 한 번에 두 장씩 뒤집습니다.",
+                    "두 장의 그림이 같으면 그대로 남고, 다르면 잠시 뒤 다시 뒤집어집니다.",
+                    "모든 짝을 찾으면 시도 횟수와 시간을 보여주고 끝납니다."
+                ],
+                "difficulty": 2,
+                "exampleIdeas": [
+                    "영어 단어와 그림 짝 찾기",
+                    "원소 기호와 이름 짝 찾기",
+                    "우리 지역 명소 그림 짝 찾기"
+                ],
+                "uiParts": [
+                    "헤드업 디스플레이 (허드)",
+                    "알림 배너 & 퀘스트 트래커",
+                    "게임 오버 / 결과 모달창"
+                ],
+                "prompt": "초등 고학년이 즐길 수 있는 기억력 카드 게임을 만들어줘. 4×4 판에 카드 16장이 뒷면으로 놓여 있고 그림은 동물 이모지 8쌍이야. 카드를 누르면 뒤집히고, 두 장이 같으면 그대로 열려 있고 다르면 1초 뒤에 다시 뒤집어져. 위쪽에 시도 횟수와 걸린 시간을 보여줘. 모든 짝을 찾으면 시도 횟수에 따라 별 1~3개를 주는 결과 화면과 다시 시작 버튼을 보여줘. 디자인은 카드가 부드럽게 뒤집히는 귀여운 스타일로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "난이도(4장·16장·24장)를 고르게 하기",
+                    "카드가 뒤집힌 뒤 일정 시간 안에만 보이는 '미리 보기' 시간 넣기"
+                ],
+                "caution": "카드 그림은 직접 만든 그림이나 이모지를 쓰고, 친구 얼굴 사진은 넣지 않습니다."
+            },
+            {
+                "id": "clicker-tycoon",
+                "category": "brain",
+                "koName": "클리커 · 키우기 게임",
+                "enName": "Clicker / Idle Tycoon",
+                "tags": [
+                    "클릭",
+                    "성장",
+                    "업그레이드"
+                ],
+                "description": "화면을 누를 때마다 자원이 쌓이고, 그 자원으로 더 빨리 모으는 도구를 사는 게임입니다. 어떤 업그레이드를 먼저 살지 계산하는 재미가 있습니다.",
+                "howItWorks": [
+                    "중앙 버튼을 누를 때마다 코인이 1개씩 올라갑니다.",
+                    "코인으로 자동 수집 도구를 사면 누르지 않아도 1초마다 코인이 늘어납니다.",
+                    "도구는 살수록 가격이 올라가고, 목표 코인에 도달하면 성공합니다."
+                ],
+                "difficulty": 3,
+                "exampleIdeas": [
+                    "교실 화분을 키우는 정원사",
+                    "우리 반 별 모으기 우주 정거장",
+                    "쓰레기를 모아 재활용 공장 키우기"
+                ],
+                "uiParts": [
+                    "헤드업 디스플레이 (허드)",
+                    "경험치 바 & 레벨 표시",
+                    "인벤토리 & 그리드 슬롯",
+                    "알림 배너 & 퀘스트 트래커"
+                ],
+                "prompt": "초등 고학년이 즐길 수 있는 키우기 게임을 만들어줘. 화면 가운데 큰 화분 버튼이 있고 누를 때마다 물방울 코인이 1개씩 올라가. 아래 상점에서 물뿌리개(코인 10개), 스프링클러(코인 50개)를 살 수 있어. 물뿌리개는 1초마다 코인 1개, 스프링클러는 1초마다 코인 5개를 자동으로 모아 주고, 살 때마다 가격이 20%씩 올라가. 위쪽에 현재 코인과 초당 코인 수를 보여주고, 코인 1000개를 모으면 '꽃이 활짝 피었어요' 완료 화면을 보여줘. 디자인은 따뜻한 정원 그림 스타일로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "도구 종류를 하나 더 추가하고 레벨을 올리면 화분 그림이 바뀌게 하기",
+                    "일정 코인마다 업적 알림 보여주기"
+                ],
+                "caution": "실제 돈이나 결제, 뽑기·확률형 보상은 넣지 않고 유명 키우기 게임의 캐릭터를 따라 하지 않습니다."
+            },
+            {
+                "id": "text-adventure",
+                "category": "story",
+                "koName": "텍스트 어드벤처",
+                "enName": "Text Adventure",
+                "tags": [
+                    "선택",
+                    "이야기",
+                    "여러 결말"
+                ],
+                "description": "글을 읽고 선택지를 골라 이야기가 달라지는 게임입니다. 국어와 사회 수업의 이야기 쓰기와 잘 어울립니다.",
+                "howItWorks": [
+                    "상황 설명과 선택지 2~3개가 화면에 나타납니다.",
+                    "선택에 따라 다른 장면으로 이동하고 점수나 아이템이 바뀝니다.",
+                    "장면을 끝까지 따라가면 선택에 맞는 결말을 보여줍니다."
+                ],
+                "difficulty": 2,
+                "exampleIdeas": [
+                    "조선시대 한양으로 떠나는 상인의 하루",
+                    "학교 도서관에 숨은 비밀 책 찾기",
+                    "환경 지키기 마을 탐험 이야기"
+                ],
+                "uiParts": [
+                    "대화창 (다이얼로그 박스)",
+                    "알림 배너 & 퀘스트 트래커",
+                    "인벤토리 & 그리드 슬롯"
+                ],
+                "prompt": "초등 고학년이 즐길 수 있는 텍스트 어드벤처 게임을 만들어줘. 주제는 '학교 도서관에 숨은 비밀 책 찾기'이고 주인공은 내가 만든 이름 없는 도서관 탐험가야. 화면 아래에 대화창이 있어서 장면 설명을 보여주고, 그 아래에 선택지 버튼 2~3개가 나와. 선택에 따라 다른 장면으로 이동하고, 열쇠나 지도 같은 아이템을 얻으면 위쪽 가방 칸에 보여줘. 장면은 최소 8개이고 결말은 3가지(성공, 보통, 다시 도전)로 만들어줘. 결말 화면에는 다시 하기 버튼을 넣어줘. 디자인은 오래된 책 느낌의 따뜻한 갈색 스타일로 해줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "선택에 따라 호감도 점수가 달라지고 결말이 바뀌게 하기",
+                    "장면마다 배경 그림이나 이모지 배경 넣기"
+                ],
+                "caution": "이야기는 직접 쓴 내용으로 하고, 소설·영화의 줄거리와 실존 인물의 이름은 그대로 쓰지 않습니다."
+            },
+            {
+                "id": "escape-room",
+                "category": "story",
+                "koName": "방탈출 게임",
+                "enName": "Escape Room",
+                "tags": [
+                    "단서",
+                    "추리",
+                    "비밀번호"
+                ],
+                "description": "방 안의 물건을 눌러 단서를 찾고 비밀번호를 풀어 문을 여는 게임입니다. 순서와 조건을 생각하는 힘을 기를 수 있습니다.",
+                "howItWorks": [
+                    "방 안의 물건을 누르면 단서 글이나 아이템이 나옵니다.",
+                    "모은 단서로 자물쇠의 비밀번호 4자리를 맞춥니다.",
+                    "제한시간 안에 문을 열면 탈출 성공입니다."
+                ],
+                "difficulty": 4,
+                "exampleIdeas": [
+                    "과학실 속 숨은 실험 도구 찾기",
+                    "수학 문제를 풀어 금고 열기",
+                    "역사 박물관에서 유물 단서 찾기"
+                ],
+                "uiParts": [
+                    "인벤토리 & 그리드 슬롯",
+                    "대화창 (다이얼로그 박스)",
+                    "알림 배너 & 퀘스트 트래커",
+                    "게임 오버 / 결과 모달창"
+                ],
+                "prompt": "초등 고학년과 중학생이 즐길 수 있는 한 페이지 방탈출 게임을 만들어줘. 배경은 과학실이고 책상, 칠판, 시계, 서랍을 누르면 단서 글이 나와. 단서 3개를 모으면 금고의 4자리 비밀번호를 알 수 있고, 숫자 입력칸에 맞게 입력하면 문이 열려. 틀리면 '다시 생각해 보자'라는 안내를 보여주고, 힌트 버튼은 3번까지만 쓸 수 있게 해줘. 제한시간은 5분이고 위쪽에 남은 시간과 모은 단서를 보여줘. 성공하면 탈출 시간을 알려 주는 결과 화면과 다시 하기 버튼을 보여줘. 디자인은 이모지와 단순한 도형으로 깔끔하게 만들어줘. 이름, 학교, 전화번호, 사진 같은 개인정보는 넣지 말아줘.",
+                "upgrade": [
+                    "방을 2개로 늘려 첫 번째 방의 열쇠로 두 번째 방 열기",
+                    "힌트를 쓸 때마다 최종 점수가 줄어들게 하기"
+                ],
+                "caution": "무섭거나 위험한 장면 대신 학습 퍼즐 중심으로 만들고, 실제 학교 이름·교실 사진은 사용하지 않습니다."
+            }
+        ];
+
+        // 유형별 게임 화면 미리보기 (직접 그린 인라인 SVG, 외부 에셋 없음)
+        const PV_MONO = "'JetBrains Mono',monospace";
+        const PV_SANS = "'Noto Sans KR',sans-serif";
+        const pvText = (x, y, t, fill, size, anchor, font, extra) =>
+            `<text x="${x}" y="${y}" fill="${fill}" font-size="${size || 9}" font-weight="700" text-anchor="${anchor || 'start'}" font-family="${font || PV_MONO}" ${extra || ''}>${t}</text>`;
+        const pvOutline = 'stroke="rgba(0,0,0,.55)" stroke-width="3" paint-order="stroke"';
+        const pvHeart = (x, y, s, fill) =>
+            `<path transform="translate(${x} ${y}) scale(${s})" d="M0 4 C-8 -1 -5 -8 0 -3 C5 -8 8 -1 0 4Z" fill="${fill}"/>`;
+        const pvStar = (cx, cy, R, r, fill, extra) => {
+            const pts = [];
+            for (let i = 0; i < 10; i++) {
+                const a = -Math.PI / 2 + i * Math.PI / 5;
+                const rad = i % 2 === 0 ? R : r;
+                pts.push((cx + rad * Math.cos(a)).toFixed(1) + ',' + (cy + rad * Math.sin(a)).toFixed(1));
+            }
+            return `<polygon points="${pts.join(' ')}" fill="${fill}" ${extra || ''}/>`;
+        };
+        const pvFrame = (label, defs, body) =>
+            `<svg viewBox="0 0 320 180" width="100%" role="img" aria-label="${label}" xmlns="http://www.w3.org/2000/svg" style="display:block;border-radius:12px;aspect-ratio:16/9"><defs>${defs}</defs>${body}</svg>`;
+
+        const previewScenes = {
+            // 러너 · 점프
+            'runner-jump': id => {
+                const pipe = (x, t, b) => `
+                    <rect x="${x + 4}" y="0" width="34" height="${t}" fill="url(#${id}-pipe)"/>
+                    <rect x="${x}" y="${t - 10}" width="42" height="10" rx="2" fill="url(#${id}-pipe)" stroke="#1b5e20"/>
+                    <rect x="${x + 4}" y="${b}" width="34" height="${158 - b}" fill="url(#${id}-pipe)"/>
+                    <rect x="${x}" y="${b}" width="42" height="10" rx="2" fill="url(#${id}-pipe)" stroke="#1b5e20"/>`;
+                return pvFrame('러너 게임 화면 예시',
+                    `<linearGradient id="${id}-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fc3f7"/><stop offset="1" stop-color="#b3e5fc"/></linearGradient>
+                     <linearGradient id="${id}-pipe" x1="0" x2="1"><stop offset="0" stop-color="#2e7d32"/><stop offset=".5" stop-color="#7bc67e"/><stop offset="1" stop-color="#2e7d32"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-sky)"/>
+                     <circle cx="275" cy="40" r="16" fill="#fff59d"/>
+                     <g class="pv-a pv-drift" fill="#fff" opacity=".92"><ellipse cx="60" cy="44" rx="26" ry="9"/><ellipse cx="78" cy="38" rx="16" ry="9"/><ellipse cx="215" cy="70" rx="22" ry="8"/><ellipse cx="231" cy="65" rx="13" ry="7"/></g>
+                     <g class="pv-a pv-drift2" fill="#fff" opacity=".6"><ellipse cx="150" cy="26" rx="18" ry="6"/><ellipse cx="285" cy="100" rx="16" ry="6"/></g>
+                     ${pipe(105, 58, 112)}${pipe(215, 40, 96)}
+                     <rect y="158" width="320" height="22" fill="#8d6e63"/><rect y="158" width="320" height="6" fill="#7cb342"/>
+                     <g transform="translate(62 82)"><g class="pv-a pv-bob">
+                        <polygon points="-12,-2 -22,-6 -20,4" fill="#f57f17"/>
+                        <circle r="13" fill="#ffca28" stroke="#f57f17" stroke-width="1.5"/>
+                        <ellipse cx="2" cy="6" rx="8" ry="5" fill="#fff8e1"/>
+                        <ellipse cx="-4" cy="3" rx="8" ry="5" fill="#ffb300" stroke="#f57f17"/>
+                        <circle cx="6" cy="-5" r="4.2" fill="#fff"/><circle cx="7.2" cy="-5" r="2" fill="#263238"/>
+                        <polygon points="11,-1 22,3 11,7" fill="#ff7043"/>
+                     </g></g>
+                     ${pvText(160, 30, 'SCORE 12', '#fff', 15, 'middle', PV_MONO, pvOutline)}
+                     ${pvText(10, 16, 'BEST 27', '#fff', 8, 'start', PV_MONO, pvOutline)}`);
+            },
+
+            // 우주 슈팅
+            'space-shooter': id => {
+                const stars = [[20,20],[48,70],[90,30],[130,92],[200,22],[232,60],[285,28],[300,120],[40,130],[110,150],[250,140],[190,100],[70,100],[270,70]]
+                    .map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 3 === 0 ? 1.4 : 0.9}" fill="#e8eaf6" opacity="${i % 2 ? 0.6 : 0.95}"/>`).join('');
+                const ast = (x, y, r, cls) => `<g transform="translate(${x} ${y})"><g class="pv-a ${cls}">
+                    <circle r="${r}" fill="url(#${id}-rock)" stroke="#5c5f73"/>
+                    <circle cx="${-r * 0.3}" cy="${-r * 0.25}" r="${r * 0.22}" fill="#6b6e82"/><circle cx="${r * 0.35}" cy="${r * 0.3}" r="${r * 0.16}" fill="#6b6e82"/></g></g>`;
+                return pvFrame('우주 슈팅 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1026"/><stop offset="1" stop-color="#241a5e"/></linearGradient>
+                     <radialGradient id="${id}-rock" cx=".35" cy=".3"><stop offset="0" stop-color="#b0b3c4"/><stop offset="1" stop-color="#6e7186"/></radialGradient>
+                     <linearGradient id="${id}-beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#80deea"/><stop offset="1" stop-color="#e0f7fa"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>${stars}
+                     ${ast(60, 56, 13, 'pv-bob')}${ast(160, 52, 15, 'pv-bob2')}${ast(256, 86, 17, 'pv-bob')}
+                     <circle cx="160" cy="66" r="19" fill="#fff59d" opacity=".35"/>
+                     <rect x="158" y="70" width="4" height="46" rx="2" fill="url(#${id}-beam)"/>
+                     <g transform="translate(160 146)">
+                        <polygon points="-6,10 0,26 6,10" fill="#ff9800" class="pv-a pv-flicker"/>
+                        <path d="M0 -34 L10 -6 L18 10 L0 4 L-18 10 L-10 -6Z" fill="#e0e7ff" stroke="#7986cb"/>
+                        <path d="M-10 -6 L-26 12 L-12 8Z M10 -6 L26 12 L12 8Z" fill="#5c6bc0"/>
+                        <ellipse cy="-12" rx="4" ry="8" fill="#26c6da"/>
+                     </g>
+                     <rect x="0" y="0" width="320" height="22" fill="rgba(0,0,0,.4)"/>
+                     ${pvText(8, 15, 'SCORE 01240', '#fff', 10)}
+                     ${pvText(160, 15, 'LV 2', '#80deea', 10, 'middle')}
+                     ${pvHeart(278, 11, 1.2, '#ef5350')}${pvHeart(294, 11, 1.2, '#ef5350')}${pvHeart(310, 11, 1.2, '#455a64')}
+                     ${pvText(8, 168, 'HP', '#fff', 8)}
+                     <rect x="22" y="161" width="90" height="8" rx="4" fill="#263238" stroke="#90a4ae"/>
+                     <rect x="23" y="162" width="62" height="6" rx="3" fill="#66bb6a"/>`);
+            },
+
+            // 반응속도 게임 (두더지 잡기)
+            'whack-a-mole': id => {
+                const mole = (cx, cy, up) => `
+                    <ellipse cx="${cx}" cy="${cy + 2}" rx="30" ry="10" fill="#6d4c41"/>
+                    <ellipse cx="${cx}" cy="${cy + 2}" rx="25" ry="8" fill="#2b1810"/>
+                    <g transform="translate(${cx} ${cy})">
+                        <path d="M-16 8 V${-up + 14} C-16 ${-up - 6} 16 ${-up - 6} 16 ${-up + 14} V8Z" fill="#8d6e63" stroke="#5d4037"/>
+                        <circle cx="-6" cy="${-up + 12}" r="2.6" fill="#212121"/><circle cx="6" cy="${-up + 12}" r="2.6" fill="#212121"/>
+                        <circle cx="-5.2" cy="${-up + 11.2}" r=".9" fill="#fff"/><circle cx="6.8" cy="${-up + 11.2}" r=".9" fill="#fff"/>
+                        <ellipse cy="${-up + 18}" rx="4.5" ry="3" fill="#f48fb1"/>
+                        <rect x="-3" y="${-up + 21}" width="2.6" height="3.6" fill="#fff"/><rect x=".4" y="${-up + 21}" width="2.6" height="3.6" fill="#fff"/>
+                    </g>
+                    <path d="M${cx - 25} ${cy + 2} A25 8 0 0 0 ${cx + 25} ${cy + 2} Z" fill="#6d4c41"/>`;
+                const hole = (cx, cy) => `<ellipse cx="${cx}" cy="${cy + 2}" rx="30" ry="10" fill="#6d4c41"/><ellipse cx="${cx}" cy="${cy + 2}" rx="25" ry="8" fill="#2b1810"/>`;
+                const holes = [[70, 62], [250, 62], [70, 150], [250, 150], [160, 150], [160, 62], [70, 106], [250, 106]].map(([x, y]) => hole(x, y)).join('');
+                return pvFrame('반응속도 게임(두더지 잡기) 화면 예시',
+                    `<linearGradient id="${id}-grass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8bc34a"/><stop offset="1" stop-color="#558b2f"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-grass)"/>
+                     ${holes}${mole(160, 106, 30)}
+                     <g class="pv-a pv-bob">${mole(70, 150, 18)}</g>
+                     ${mole(250, 62, 10)}
+                     <g transform="translate(206 84)"><g class="pv-a pv-swing">
+                        <rect x="-3" y="0" width="6" height="42" rx="2" fill="#a1887f" stroke="#5d4037"/>
+                        <rect x="-15" y="-14" width="30" height="18" rx="4" fill="#e53935" stroke="#8e0000"/>
+                        <rect x="-12" y="-11" width="24" height="4" rx="2" fill="#ff8a80"/>
+                     </g></g>
+                     <rect width="320" height="22" fill="rgba(0,0,0,.45)"/>
+                     ${pvText(8, 15, 'TIME', '#fff', 8)}
+                     <rect x="38" y="7" width="120" height="9" rx="4" fill="#33691e" stroke="#c5e1a5"/>
+                     <rect x="39" y="8" width="72" height="7" rx="3" fill="#ffb300"/>
+                     ${pvText(312, 15, 'SCORE 90', '#fff', 10, 'end')}`);
+            },
+
+            // 스네이크형 아케이드
+            'snake-arcade': id => pvFrame('스네이크형 아케이드 게임 화면 예시',
+                `<pattern id="${id}-grid" patternUnits="userSpaceOnUse" width="32" height="32" patternTransform="translate(0 4)">
+                    <rect width="32" height="32" fill="#2e7d32"/><rect width="16" height="16" fill="#388e3c"/><rect x="16" y="16" width="16" height="16" fill="#388e3c"/></pattern>`,
+                `<rect y="20" width="320" height="160" fill="url(#${id}-grid)"/>
+                 <path d="M40 108 L120 108 L120 60 L200 60 L200 124 L248 124" fill="none" stroke="#01579b" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+                 <path d="M40 108 L120 108 L120 60 L200 60 L200 124 L248 124" fill="none" stroke="#29b6f6" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+                 <path d="M40 108 L120 108 L120 60 L200 60 L200 124 L248 124" fill="none" stroke="#81d4fa" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 9"/>
+                 <circle cx="250" cy="124" r="9" fill="#29b6f6" stroke="#01579b"/>
+                 <circle cx="253" cy="120" r="2.6" fill="#fff"/><circle cx="253" cy="128" r="2.6" fill="#fff"/>
+                 <circle cx="254" cy="120" r="1.2" fill="#212121"/><circle cx="254" cy="128" r="1.2" fill="#212121"/>
+                 <path d="M259 124 L267 124 M267 124 L270 121 M267 124 L270 127" stroke="#e53935" stroke-width="1.4" fill="none" class="pv-a pv-blink"/>
+                 <g class="pv-a pv-pulse"><circle cx="296" cy="124" r="7" fill="#e53935" stroke="#8e0000"/><path d="M296 117 Q300 111 305 113 Q301 118 296 117Z" fill="#7cb342"/><circle cx="293.5" cy="121.5" r="1.8" fill="#ff8a80"/></g>
+                 <rect width="320" height="20" fill="#1b2a1d"/>
+                 ${pvText(8, 14, 'SCORE 120', '#fff', 10)}
+                 ${pvText(160, 14, 'BEST 340', '#ffd54f', 9, 'middle')}
+                 ${pvText(312, 14, 'LEN 9', '#81d4fa', 10, 'end')}`),
+
+            // 타워 디펜스
+            'tower-defense': id => {
+                const route = 'M-10 100 L80 100 L80 50 L190 50 L190 130 L330 130';
+                const tower = (x, y, a) => `<g transform="translate(${x} ${y})">
+                    <circle r="12" fill="#546e7a" stroke="#263238" stroke-width="1.5"/>
+                    <g transform="rotate(${a})"><rect x="0" y="-3" width="17" height="6" rx="2" fill="#37474f"/></g>
+                    <circle r="6.5" fill="#cfd8dc" stroke="#455a64"/></g>`;
+                const enemy = (x, y, hp) => `<g transform="translate(${x} ${y})">
+                    <circle r="6.5" fill="#ef5350" stroke="#8e0000"/><circle cx="-2" cy="-1" r="1.2" fill="#fff"/><circle cx="2" cy="-1" r="1.2" fill="#fff"/>
+                    <rect x="-7" y="-13" width="14" height="3" fill="#37474f"/><rect x="-7" y="-13" width="${hp}" height="3" fill="#66bb6a"/></g>`;
+                return pvFrame('타워 디펜스 게임 화면 예시',
+                    `<linearGradient id="${id}-grass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ccc65"/><stop offset="1" stop-color="#689f38"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-grass)"/>
+                     <path d="${route}" fill="none" stroke="#a1887f" stroke-width="28" stroke-linejoin="round"/>
+                     <path d="${route}" fill="none" stroke="#e0c9a0" stroke-width="22" stroke-linejoin="round"/>
+                     <circle cx="135" cy="88" r="42" fill="rgba(255,255,255,.12)" stroke="#fff" stroke-dasharray="4 4" opacity=".7"/>
+                     ${tower(40, 70, 35)}${tower(135, 88, -40)}${tower(238, 100, 160)}
+                     <g class="pv-a pv-march">${enemy(14, 100, 11)}${enemy(46, 100, 8)}</g>
+                     <g class="pv-a pv-march2">${enemy(190, 82, 10)}</g>
+                     <circle cx="150" cy="70" r="2.4" fill="#fff59d" class="pv-a pv-blink"/>
+                     <rect width="320" height="22" fill="rgba(0,0,0,.5)"/>
+                     <circle cx="14" cy="11" r="6" fill="#ffd54f" stroke="#f57f17"/>
+                     ${pvText(25, 15, 'GOLD 120', '#fff', 9)}
+                     ${pvText(160, 15, 'WAVE 3/5', '#ffcc80', 10, 'middle')}
+                     ${pvHeart(284, 11, 1.2, '#ef5350')}${pvHeart(300, 11, 1.2, '#ef5350')}${pvHeart(316, 11, 1.2, '#ef5350')}
+                     <rect y="158" width="320" height="22" fill="rgba(0,0,0,.55)"/>
+                     <g>${[0, 1, 2].map(i => `<rect x="${10 + i * 52}" y="161" width="46" height="16" rx="4" fill="rgba(255,255,255,.14)" stroke="#b0bec5"/>
+                        <circle cx="${22 + i * 52}" cy="169" r="5" fill="${['#cfd8dc', '#80cbc4', '#ffab91'][i]}"/>
+                        ${pvText(32 + i * 52, 172, String([20, 35, 50][i]), '#ffd54f', 8)}`).join('')}</g>`);
+            },
+
+            // 슬라이딩 퍼즐
+            'sliding-puzzle': id => {
+                const grid = [[1, 2, 3], [4, 0, 6], [7, 5, 8]];
+                const fills = ['#ffca28', '#ff7043', '#ab47bc', '#42a5f5', '#26a69a', '#ec407a', '#7e57c2', '#66bb6a'];
+                const tiles = grid.map((row, r) => row.map((n, c) => {
+                    const x = 99 + c * 41, y = 40 + r * 41;
+                    if (n === 0) return `<rect x="${x}" y="${y}" width="38" height="38" rx="6" fill="#1a1050" stroke="#5e35b1" stroke-dasharray="3 3"/>`;
+                    const hint = n === 5 ? `<rect x="${x - 1.5}" y="${y - 1.5}" width="41" height="41" rx="7" fill="none" stroke="#fff" stroke-width="2" class="pv-a pv-blink"/>` : '';
+                    return `<rect x="${x}" y="${y + 2}" width="38" height="38" rx="6" fill="rgba(0,0,0,.35)"/>
+                        <rect x="${x}" y="${y}" width="38" height="38" rx="6" fill="${fills[n - 1]}"/>
+                        <rect x="${x + 3}" y="${y + 3}" width="32" height="8" rx="4" fill="rgba(255,255,255,.25)"/>
+                        ${pvText(x + 19, y + 27, n, '#fff', 20, 'middle', PV_MONO, 'stroke="rgba(0,0,0,.25)" stroke-width="2" paint-order="stroke"')}${hint}`;
+                }).join('')).join('');
+                return pvFrame('슬라이딩 퍼즐 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4527a0"/><stop offset="1" stop-color="#1a237e"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     <rect x="94" y="35" width="132" height="132" rx="10" fill="#311b92" stroke="#9575cd" stroke-width="2"/>
+                     ${tiles}
+                     ${pvText(10, 22, 'MOVES', '#b39ddb', 8)}${pvText(10, 38, '14', '#fff', 16)}
+                     ${pvText(310, 22, 'TIME', '#b39ddb', 8, 'end')}${pvText(310, 38, '00:32', '#fff', 14, 'end')}
+                     ${pvText(10, 168, '1~8 순서로', '#d1c4e9', 8, 'start', PV_SANS)}`);
+            },
+
+            // 매치 퍼즐
+            'match-three': id => {
+                const colors = ['#ef5350', '#42a5f5', '#66bb6a', '#ffee58', '#ab47bc', '#ff9800'];
+                const board = [[0, 1, 2, 3, 4, 5], [3, 5, 0, 1, 2, 4], [1, 1, 1, 4, 0, 3], [4, 2, 5, 0, 3, 1], [0, 3, 1, 2, 5, 4], [2, 4, 3, 5, 1, 0]];
+                const gem = (k, cx, cy) => {
+                    const f = colors[k], s = 'stroke="rgba(0,0,0,.35)" stroke-width="1"';
+                    const shapes = [
+                        `<circle cx="${cx}" cy="${cy}" r="8" fill="${f}" ${s}/>`,
+                        `<polygon points="${cx},${cy - 9} ${cx + 8},${cy} ${cx},${cy + 9} ${cx - 8},${cy}" fill="${f}" ${s}/>`,
+                        `<rect x="${cx - 7}" y="${cy - 7}" width="14" height="14" rx="3" fill="${f}" ${s}/>`,
+                        `<polygon points="${cx},${cy - 9} ${cx + 9},${cy + 7} ${cx - 9},${cy + 7}" fill="${f}" ${s}/>`,
+                        `<polygon points="${cx - 4.5},${cy - 8} ${cx + 4.5},${cy - 8} ${cx + 9},${cy} ${cx + 4.5},${cy + 8} ${cx - 4.5},${cy + 8} ${cx - 9},${cy}" fill="${f}" ${s}/>`,
+                        pvStar(cx, cy, 9.5, 4.2, f, s)
+                    ];
+                    return shapes[k] + `<circle cx="${cx - 2.5}" cy="${cy - 3}" r="1.6" fill="rgba(255,255,255,.55)"/>`;
+                };
+                const cells = board.map((row, r) => row.map((k, c) => gem(k, 103 + c * 23, 46 + r * 23)).join('')).join('');
+                return pvFrame('매치 퍼즐 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1a52"/><stop offset="1" stop-color="#12082b"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     <rect x="89" y="32" width="142" height="142" rx="8" fill="rgba(255,255,255,.08)" stroke="#7e57c2" stroke-width="1.5"/>
+                     ${cells}
+                     <rect x="91" y="80" width="69" height="23" rx="6" fill="rgba(255,255,255,.18)" stroke="#fff" stroke-width="2" class="pv-a pv-blink"/>
+                     ${pvText(10, 24, 'SCORE', '#b39ddb', 8)}${pvText(10, 38, '2,450', '#fff', 13)}
+                     ${pvText(10, 64, 'COMBO', '#b39ddb', 8)}${pvText(10, 80, 'x3', '#ffee58', 16)}
+                     ${pvText(310, 24, 'MOVES', '#b39ddb', 8, 'end')}${pvText(310, 38, '12', '#fff', 13, 'end')}
+                     ${pvText(310, 64, 'GOAL', '#b39ddb', 8, 'end')}${pvText(310, 78, '3000', '#80cbc4', 11, 'end')}`);
+            },
+
+            // 퀴즈 게임
+            'quiz-challenge': id => {
+                const opt = (x, y, letter, label, on) => `
+                    <rect x="${x}" y="${y}" width="138" height="30" rx="9" fill="${on ? '#43a047' : 'rgba(255,255,255,.16)'}" stroke="${on ? '#c8e6c9' : 'rgba(255,255,255,.45)'}" stroke-width="${on ? 2 : 1}" ${on ? 'class="pv-a pv-blink"' : ''}/>
+                    <circle cx="${x + 16}" cy="${y + 15}" r="9" fill="${on ? '#fff' : '#7986cb'}"/>
+                    ${pvText(x + 16, y + 19, letter, on ? '#2e7d32' : '#fff', 11, 'middle')}
+                    ${pvText(x + 34, y + 19, label, '#fff', 11, 'start', PV_SANS)}
+                    ${on ? `<polyline points="${x + 118},${y + 15} ${x + 123},${y + 20} ${x + 130},${y + 10}" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ''}`;
+                return pvFrame('퀴즈 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#283593"/><stop offset="1" stop-color="#6a1b9a"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     <rect x="16" y="10" width="288" height="8" rx="4" fill="rgba(255,255,255,.2)"/>
+                     <rect x="16" y="10" width="86" height="8" rx="4" fill="#4dd0e1"/>
+                     ${pvText(16, 34, 'Q 3 / 10', '#e1bee7', 9)}${pvText(304, 34, '00:07', '#ffcc80', 9, 'end')}
+                     <rect x="16" y="40" width="288" height="46" rx="10" fill="#fff" stroke="#b39ddb" stroke-width="2"/>
+                     ${pvText(160, 69, '태양에서 가장 가까운 행성은?', '#1a237e', 13, 'middle', PV_SANS)}
+                     ${opt(16, 96, 'A', '수성', true)}${opt(166, 96, 'B', '금성', false)}
+                     ${opt(16, 134, 'C', '지구', false)}${opt(166, 134, 'D', '화성', false)}`);
+            },
+
+            // 기억력 카드 게임
+            'memory-cards': id => {
+                const open = { '1,1': 'heart', '3,0': 'heart' };
+                const done = { '0,0': 'star', '2,2': 'star' };
+                const cards = [];
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 4; c++) {
+                        const x = 48 + c * 58, y = 34 + r * 48, key = `${c},${r}`;
+                        const cx = x + 25, cy = y + 20;
+                        if (open[key]) {
+                            cards.push(`<rect x="${x}" y="${y}" width="50" height="40" rx="6" fill="#fff" stroke="#ffd54f" stroke-width="2.5" class="pv-a pv-blink"/>${pvHeart(cx, cy, 2.6, '#e53935')}`);
+                        } else if (done[key]) {
+                            cards.push(`<rect x="${x}" y="${y}" width="50" height="40" rx="6" fill="#fff8e1" stroke="#a5d6a7" stroke-width="2" opacity=".75"/>${pvStar(cx, cy, 13, 6, '#ffb300')}`);
+                        } else {
+                            cards.push(`<rect x="${x}" y="${y + 2}" width="50" height="40" rx="6" fill="rgba(0,0,0,.3)"/><rect x="${x}" y="${y}" width="50" height="40" rx="6" fill="url(#${id}-back)" stroke="#c5cae9"/>
+                                <polygon points="${cx},${cy - 9} ${cx + 8},${cy} ${cx},${cy + 9} ${cx - 8},${cy}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>`);
+                        }
+                    }
+                }
+                return pvFrame('기억력 카드 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#004d40"/><stop offset="1" stop-color="#00796b"/></linearGradient>
+                     <linearGradient id="${id}-back" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7986cb"/><stop offset="1" stop-color="#3949ab"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     ${cards.join('')}
+                     ${pvText(48, 22, 'TRIES 7', '#fff', 10)}${pvText(272, 22, 'PAIRS 1/6', '#ffe082', 10, 'end')}`);
+            },
+
+            // 클리커 · 키우기
+            'clicker-tycoon': id => {
+                const card = (y, name, price, color, on) => `
+                    <g opacity="${on ? 1 : 0.55}">
+                    <rect x="190" y="${y}" width="122" height="40" rx="8" fill="rgba(255,255,255,.1)" stroke="${on ? '#a5d6a7' : 'rgba(255,255,255,.3)'}" stroke-width="${on ? 2 : 1}"/>
+                    <circle cx="209" cy="${y + 20}" r="10" fill="${color}" stroke="rgba(0,0,0,.35)"/>
+                    ${pvText(225, y + 17, name, '#fff', 8.5, 'start', PV_SANS)}
+                    ${pvText(225, y + 32, price, '#ffd54f', 9)}</g>`;
+                return pvFrame('클리커 키우기 게임 화면 예시',
+                    `<linearGradient id="${id}-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a237e"/><stop offset="1" stop-color="#311b92"/></linearGradient>
+                     <radialGradient id="${id}-btn" cx=".4" cy=".35"><stop offset="0" stop-color="#fff59d"/><stop offset=".6" stop-color="#ffb300"/><stop offset="1" stop-color="#ef6c00"/></radialGradient>`,
+                    `<rect width="320" height="180" fill="url(#${id}-bg)"/>
+                     ${[[20,20],[160,14],[176,60],[30,150],[170,160],[300,170],[184,110]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1" fill="#c5cae9" opacity=".7"/>`).join('')}
+                     ${pvText(100, 28, '1,280', '#ffd54f', 20, 'middle')}
+                     ${pvText(100, 42, '+12 / sec', '#b3e5fc', 8.5, 'middle')}
+                     <g class="pv-a pv-pulse">
+                        <circle cx="100" cy="108" r="52" fill="url(#${id}-btn)" stroke="#fff176" stroke-width="3"/>
+                        <circle cx="100" cy="108" r="44" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>
+                        ${pvStar(100, 108, 30, 13, '#fff8e1', 'stroke="#ff8f00" stroke-width="2" stroke-linejoin="round"')}
+                     </g>
+                     <g class="pv-a pv-float">${pvText(150, 80, '+1', '#fff', 14, 'middle', PV_MONO, pvOutline)}</g>
+                     ${pvText(200, 20, 'UPGRADES', '#9fa8da', 8)}
+                     ${card(26, '별 수집기 Lv3', '120', '#66bb6a', true)}
+                     ${card(72, '자동 반짝이 Lv1', '500', '#42a5f5', false)}
+                     ${card(118, '별빛 공장 Lv0', '2,000', '#ab47bc', false)}`);
+            },
+
+            // 텍스트 어드벤처
+            'text-adventure': id => pvFrame('텍스트 어드벤처 게임 화면 예시',
+                `<linearGradient id="${id}-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b1410"/><stop offset="1" stop-color="#3e2a1d"/></linearGradient>
+                 <radialGradient id="${id}-glow" cx=".5" cy=".5"><stop offset="0" stop-color="#ffcc80" stop-opacity=".55"/><stop offset="1" stop-color="#ffcc80" stop-opacity="0"/></radialGradient>`,
+                `<rect width="320" height="180" fill="#120d0a"/>
+                 <rect width="320" height="92" fill="url(#${id}-wall)"/>
+                 <polygon points="0,74 320,74 320,92 0,92" fill="#2a1c12"/>
+                 <rect x="140" y="16" width="28" height="32" fill="#0d1b3a" stroke="#6d4c41" stroke-width="2"/>
+                 <circle cx="156" cy="28" r="7" fill="#fff9c4"/><circle cx="160" cy="26" r="6" fill="#0d1b3a"/>
+                 <path d="M208 76 V30 Q208 14 232 14 Q256 14 256 30 V76Z" fill="#5d4037" stroke="#3e2723" stroke-width="2"/>
+                 <path d="M218 76 V32 Q218 22 232 22 Q246 22 246 32 V76Z" fill="#6d4c41"/>
+                 <circle cx="246" cy="48" r="2.4" fill="#ffd54f"/>
+                 <rect x="212" y="75" width="40" height="1.6" fill="#ffd54f" opacity=".8"/>
+                 <circle cx="92" cy="50" r="34" fill="url(#${id}-glow)" class="pv-a pv-blink"/>
+                 <rect x="68" y="66" width="48" height="5" fill="#6d4c41"/><rect x="72" y="71" width="4" height="16" fill="#4e342e"/><rect x="108" y="71" width="4" height="16" fill="#4e342e"/>
+                 <rect x="88" y="46" width="8" height="20" fill="#ffe0b2" stroke="#bcaaa4"/>
+                 <ellipse cx="92" cy="41" rx="3.6" ry="6.5" fill="#ffa726" class="pv-a pv-flicker"/><ellipse cx="92" cy="43" rx="1.6" ry="3.5" fill="#fff59d"/>
+                 <rect x="8" y="96" width="304" height="48" rx="6" fill="rgba(0,0,0,.78)" stroke="#d7b98a"/>
+                 <rect x="14" y="89" width="42" height="11" rx="3" fill="#d7b98a"/>
+                 ${pvText(35, 97.5, '나레이터', '#3e2723', 7.5, 'middle', PV_SANS)}
+                 ${pvText(16, 112, '문 뒤에서 희미한 소리가 들린다.', '#f5f5f5', 8.5, 'start', PV_SANS)}
+                 ${pvText(16, 123, '촛불이 흔들리며 벽에 그림자가 비친다.', '#f5f5f5', 8.5, 'start', PV_SANS)}
+                 ${pvText(16, 134, '어떻게 할까?', '#ffd54f', 8.5, 'start', PV_SANS)}
+                 <polygon points="298,134 306,134 302,139" fill="#d7b98a" class="pv-a pv-blink"/>
+                 <rect x="8" y="150" width="148" height="22" rx="6" fill="rgba(215,185,138,.25)" stroke="#ffd54f" stroke-width="1.5"/>
+                 <rect x="164" y="150" width="148" height="22" rx="6" fill="rgba(255,255,255,.08)" stroke="#a1887f"/>
+                 ${pvText(82, 165, '1  문을 연다', '#fff', 9.5, 'middle', PV_SANS)}
+                 ${pvText(238, 165, '2  촛불을 든다', '#e0e0e0', 9.5, 'middle', PV_SANS)}`),
+
+            // 방탈출 게임
+            'escape-room': id => {
+                const slot = (i, item) => `<rect x="${10 + i * 32}" y="152" width="26" height="24" rx="5" fill="rgba(255,255,255,.08)" stroke="#90a4ae"/>${item || ''}`;
+                return pvFrame('방탈출 게임 화면 예시',
+                    `<linearGradient id="${id}-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#455a64"/><stop offset="1" stop-color="#263238"/></linearGradient>
+                     <linearGradient id="${id}-door" x1="0" x2="1"><stop offset="0" stop-color="#6d4c41"/><stop offset="1" stop-color="#4e342e"/></linearGradient>`,
+                    `<rect width="320" height="180" fill="#1c262b"/>
+                     <rect width="320" height="128" fill="url(#${id}-wall)"/>
+                     ${[40, 80, 120, 160, 200, 240, 280].map(x => `<line x1="${x}" y1="0" x2="${x}" y2="128" stroke="rgba(255,255,255,.05)"/>`).join('')}
+                     <rect y="128" width="320" height="20" fill="#37474f"/><rect y="128" width="320" height="3" fill="#78909c"/>
+                     <rect x="36" y="38" width="80" height="90" rx="3" fill="url(#${id}-door)" stroke="#3e2723" stroke-width="3"/>
+                     <rect x="46" y="48" width="26" height="30" rx="2" fill="none" stroke="#3e2723"/><rect x="80" y="48" width="26" height="30" rx="2" fill="none" stroke="#3e2723"/>
+                     <rect x="46" y="86" width="26" height="30" rx="2" fill="none" stroke="#3e2723"/><rect x="80" y="86" width="26" height="30" rx="2" fill="none" stroke="#3e2723"/>
+                     <g transform="translate(76 86)" class="pv-a pv-blink">
+                        <path d="M-6 0 V-7 A6 6 0 0 1 6 -7 V0" fill="none" stroke="#cfd8dc" stroke-width="3"/>
+                        <rect x="-9" y="0" width="18" height="14" rx="3" fill="#ffb300" stroke="#e65100"/><circle cy="6" r="2" fill="#5d4037"/>
+                     </g>
+                     <rect x="180" y="28" width="52" height="32" fill="#4e342e" stroke="#ffd54f" stroke-width="2"/>
+                     <polygon points="184,56 200,38 212,50 220,42 228,56" fill="#66bb6a"/><circle cx="218" cy="36" r="4" fill="#fff59d"/>
+                     <rect x="170" y="78" width="100" height="50" rx="3" fill="#6d4c41" stroke="#3e2723" stroke-width="2"/>
+                     <rect x="176" y="84" width="88" height="19" rx="2" fill="#8d6e63" stroke="#3e2723"/>
+                     <rect x="176" y="106" width="88" height="19" rx="2" fill="#8d6e63" stroke="#3e2723"/>
+                     <rect x="176" y="103" width="88" height="3" fill="#1b0f0a"/>
+                     <circle cx="220" cy="94" r="3" fill="#ffd54f"/><circle cx="220" cy="116" r="3" fill="#ffd54f"/>
+                     <rect y="148" width="320" height="32" fill="rgba(0,0,0,.6)"/>
+                     ${slot(0, `<g transform="translate(23 164)"><circle cx="-3" cy="-3" r="4.5" fill="none" stroke="#ffd54f" stroke-width="2.4"/><rect x="0" y="-4" width="9" height="2.6" fill="#ffd54f"/><rect x="5" y="-2" width="2.2" height="4.5" fill="#ffd54f"/></g>`)}
+                     ${slot(1, '<rect x="48" y="157" width="14" height="14" fill="#fff8e1" stroke="#bcaaa4"/><line x1="51" y1="162" x2="59" y2="162" stroke="#8d6e63"/><line x1="51" y1="166" x2="57" y2="166" stroke="#8d6e63"/>')}
+                     ${slot(2)}${slot(3)}
+                     ${pvText(10, 20, '04:12', '#ff8a80', 12, 'start', PV_MONO, pvOutline)}
+                     <rect x="252" y="8" width="60" height="18" rx="6" fill="#00897b" stroke="#80cbc4"/>
+                     ${pvText(282, 20.5, 'HINT 3', '#fff', 9, 'middle')}
+                     ${pvText(312, 170, '단서 2/3', '#ffe082', 9, 'end', PV_SANS)}`);
+            }
+        };
+
+        // 상태 변수
+        let currentCategory = 'all';
+        let searchQuery = '';
+
+        // DOM 요소
+        const genreGrid = document.getElementById('genreGrid');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+
+        // HTML 이스케이프 (innerHTML 삽입 전 필수)
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // 난이도 별 (★ 채움 / ☆ 빈칸, 총 5개)
+        function renderStars(level) {
+            const n = Math.max(1, Math.min(5, Number(level) || 1));
+            return '★'.repeat(n) + '☆'.repeat(5 - n);
+        }
+
+        // 게임 화면 미리보기: 장면 맵 조회, 없으면 단색 플레이스홀더
+        function renderPreview(item) {
+            const scene = previewScenes[item.id];
+            if (!scene) {
+                return '<div class="w-full bg-slate-900 rounded-xl border border-slate-700" style="aspect-ratio:16/9" role="img" aria-label="게임 화면 예시"></div>';
+            }
+            return `<div class="rounded-xl overflow-hidden border border-slate-700">${scene('pv-' + item.id)}</div>`;
+        }
+
+        // 카드 렌더링 함수
+        function renderCards() {
+            const q = searchQuery.trim().toLowerCase();
+            const entries = gameGenreData
+                .map((item, index) => ({ item, index }))
+                .filter(({ item }) => {
+                    const matchCategory = currentCategory === 'all' || item.category === currentCategory;
+                    const matchSearch = !q ||
+                        item.koName.toLowerCase().includes(q) ||
+                        item.enName.toLowerCase().includes(q) ||
+                        item.description.toLowerCase().includes(q) ||
+                        item.tags.some(tag => tag.toLowerCase().includes(q));
+                    return matchCategory && matchSearch;
+                });
+
+            if (entries.length === 0) {
+                genreGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            genreGrid.innerHTML = entries.map(({ item, index }) => `
+                <article class="bg-slate-800/70 border border-slate-700/80 hover:border-indigo-500/50 rounded-2xl p-5 flex flex-col justify-between shadow-lg transition-all duration-200 hover:-translate-y-1">
+                    <div>
+                        <!-- 영문명 배지 · 한글명 · 난이도 -->
+                        <div class="mb-3">
+                            <span class="inline-block text-[11px] font-mono font-bold text-indigo-300 bg-indigo-950/80 border border-indigo-500/30 px-2.5 py-0.5 rounded-md mb-1.5">
+                                ${escapeHtml(item.enName)}
+                            </span>
+                            <h3 class="text-lg font-bold text-white">${escapeHtml(item.koName)}</h3>
+                            <p class="text-xs text-slate-300 mt-1">
+                                만들기 난이도
+                                <span class="text-amber-300 tracking-wider ml-1" role="img" aria-label="난이도 5점 만점에 ${escapeHtml(item.difficulty)}점">${escapeHtml(renderStars(item.difficulty))}</span>
+                            </p>
+                        </div>
+
+                        <!-- 이모지 미리보기 -->
+                        <div class="mb-4">${renderPreview(item)}</div>
+
+                        <!-- 설명 -->
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">${escapeHtml(item.description)}</p>
+
+                        <!-- 해시태그 -->
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            ${item.tags.map(tag => `<span class="text-[11px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded-md">#${escapeHtml(tag)}</span>`).join('')}
+                        </div>
+
+                        <!-- 핵심 규칙 -->
+                        <h4 class="text-xs font-bold text-indigo-300 mb-1.5">핵심 규칙</h4>
+                        <ol class="list-decimal list-inside text-sm text-slate-300 space-y-1 mb-4">
+                            ${item.howItWorks.slice(0, 3).map(r => `<li>${escapeHtml(r)}</li>`).join('')}
+                        </ol>
+
+                        <!-- 우리 반 소재 아이디어 -->
+                        <h4 class="text-xs font-bold text-indigo-300 mb-1.5">우리 반 소재 아이디어</h4>
+                        <ul class="list-disc list-inside text-sm text-slate-300 space-y-1 mb-4">
+                            ${item.exampleIdeas.slice(0, 3).map(r => `<li>${escapeHtml(r)}</li>`).join('')}
+                        </ul>
+
+                        <!-- 필요한 UI 부품 -->
+                        <h4 class="text-xs font-bold text-indigo-300 mb-1.5">필요한 UI 부품</h4>
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            ${item.uiParts.map(p => `<span class="text-[11px] bg-indigo-950/80 text-indigo-200 border border-indigo-500/30 px-2 py-0.5 rounded-md">${escapeHtml(p)}</span>`).join('')}
+                        </div>
+
+                        <!-- 레벨업 아이디어 -->
+                        <h4 class="text-xs font-bold text-emerald-300 mb-1.5">레벨업 아이디어</h4>
+                        <ul class="list-disc list-inside text-sm text-slate-300 space-y-1 mb-4">
+                            ${item.upgrade.slice(0, 2).map(r => `<li>${escapeHtml(r)}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div>
+                        <!-- 프롬프트 예시 박스 -->
+                        <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 mb-3">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-[11px] font-bold text-emerald-300 flex items-center gap-1">
+                                    <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> 프롬프트 복사
+                                </span>
+                                <button type="button" data-index="${index}" aria-label="${escapeHtml(item.koName)} 프롬프트 복사" class="copy-btn text-xs bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white px-2.5 py-1 rounded-lg border border-slate-600 hover:border-indigo-500 transition flex items-center gap-1.5 font-medium">
+                                    <i class="fa-regular fa-copy" aria-hidden="true"></i> 복사
+                                </button>
+                            </div>
+                            <p class="text-xs text-slate-300 leading-relaxed select-all">"${escapeHtml(item.prompt)}"</p>
+                        </div>
+
+                        <!-- 저작권·안전 유의 -->
+                        <p class="text-xs text-amber-200 bg-amber-950/50 border border-amber-500/40 rounded-lg px-3 py-2 leading-relaxed">
+                            ⚠️ ${escapeHtml(item.caution)}
+                        </p>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        // 카테고리 탭 이벤트
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                categoryBtns.forEach(b => {
+                    b.classList.remove('bg-indigo-600', 'text-white', 'font-bold');
+                    b.classList.add('bg-slate-800', 'text-slate-300', 'font-medium');
+                });
+                btn.classList.remove('bg-slate-800', 'text-slate-300', 'font-medium');
+                btn.classList.add('bg-indigo-600', 'text-white', 'font-bold');
+
+                currentCategory = btn.dataset.category;
+                renderCards();
+            });
+        });
+
+        // 검색 이벤트
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderCards();
+        });
+
+        // 복사 버튼: data-index 로 데이터 배열에서 프롬프트를 읽음
+        genreGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.copy-btn');
+            if (!btn) return;
+            const item = gameGenreData[Number(btn.dataset.index)];
+            if (item) copyPrompt(item.prompt);
+        });
+
+        // 클립보드 복사 함수 (iFrame 호환)
+        function copyPrompt(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                const ok = document.execCommand('copy');
+                showToast(ok ? '프롬프트가 복사되었습니다! AI 채팅창에 붙여넣어 보세요.' : '복사에 실패했습니다.');
+            } catch (err) {
+                showToast('복사에 실패했습니다.');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // 토스트 알림 표시
+        let toastTimeout;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.querySelector('span').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // 초기 실행
+        window.onload = () => {
+            renderCards();
+        };
+
+        // 발표자료(index.html) 안에서 열렸을 때: Esc 키로 사전 닫기
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && window.parent !== window) {
+                window.parent.postMessage('ui-dict-close', '*');
+            }
+        });
+    </script>
+</body>
+</html>
